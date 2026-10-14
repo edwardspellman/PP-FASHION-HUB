@@ -427,15 +427,9 @@ export default function AdminDashboard({
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-extrabold text-sm sm:text-base tracking-tight uppercase text-white">
-                  THE FASHION HUB
-                </span>
-                <span className="text-[10px] font-bold bg-emerald-600 text-white px-2 py-0.5 tracking-wider uppercase flex items-center space-x-1.5 shadow-xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                  <span>CRM ONLINE</span>
-                </span>
-              </div>
+              <span className="font-extrabold text-sm sm:text-base tracking-tight uppercase text-white block">
+                THE FASHION HUB
+              </span>
               <p className="text-[10px] text-neutral-400 hidden sm:block">
                 Merchant Operations & Product Listing Control Center
               </p>
@@ -444,20 +438,12 @@ export default function AdminDashboard({
 
           <div className="flex items-center space-x-2 sm:space-x-3">
             <button
-              onClick={handleOpenAdd}
-              className="px-3 sm:px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>List Deal</span>
-            </button>
-
-            <button
               onClick={onExitAdmin}
-              className="px-2.5 sm:px-3 py-2 border border-neutral-700 hover:border-white text-white font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors cursor-pointer"
+              className="px-3 py-2 border border-neutral-700 hover:border-white text-white font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors cursor-pointer"
               title="Return to customer storefront"
             >
               <Eye className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">View Store</span>
+              <span>View Store</span>
             </button>
 
             {/* Mobile Sidebar Hamburger (Right Side for Android & iOS) */}
