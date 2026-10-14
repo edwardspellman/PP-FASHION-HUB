@@ -234,16 +234,29 @@ export default function App() {
 
       {/* VIEW: ADMIN CRM DASHBOARD (When authenticated) */}
       {currentView === 'admin' ? (
-        <main className="flex-1 w-full">
-          <AdminDashboard
-            products={products}
-            onRefreshProducts={fetchProducts}
+        <div className="flex-1 flex flex-col w-full min-h-screen">
+          <main className="flex-1 w-full">
+            <AdminDashboard
+              products={products}
+              onRefreshProducts={fetchProducts}
+              settings={settings}
+              onUpdateSettings={handleUpdateSettings}
+              onShowToast={showToast}
+              onExitAdmin={handleExitAdmin}
+            />
+          </main>
+          <Footer
             settings={settings}
-            onUpdateSettings={handleUpdateSettings}
-            onShowToast={showToast}
-            onExitAdmin={handleExitAdmin}
+            onCategorySelect={(cat) => {
+              setSelectedCategory(cat);
+              setCurrentView('deals');
+              scrollToDeals();
+            }}
+            onOpenAdmin={handleOpenAdmin}
+            isAdminAuthenticated={isAdminAuthenticated}
+            currentView={currentView}
           />
-        </main>
+        </div>
       ) : (
         /* VIEW: PUBLIC DEALS STOREFRONT (Completely clean of admin buttons) */
         <div className="flex-1 flex flex-col">
@@ -264,7 +277,8 @@ export default function App() {
             {/* Hero Banner */}
             <HeroBanner 
               settings={settings} 
-              onExploreClick={scrollToDeals} 
+              onExploreClick={scrollToDeals}
+              isAdminAuthenticated={isAdminAuthenticated}
             />
 
             <div ref={dealsSectionRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-12">
@@ -378,6 +392,8 @@ export default function App() {
               scrollToDeals();
             }}
             onOpenAdmin={handleOpenAdmin}
+            isAdminAuthenticated={isAdminAuthenticated}
+            currentView={currentView}
           />
         </div>
       )}

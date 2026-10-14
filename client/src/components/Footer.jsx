@@ -1,7 +1,9 @@
 import React from 'react';
 import { ShoppingBag, ExternalLink, ShieldCheck, Lock } from 'lucide-react';
 
-export default function Footer({ settings, onCategorySelect, onOpenAdmin }) {
+export default function Footer({ settings, onCategorySelect, onOpenAdmin, isAdminAuthenticated, currentView }) {
+  const isCrmActive = Boolean(isAdminAuthenticated || currentView === 'admin');
+
   return (
     <footer className="bg-neutral-950 text-neutral-400 text-xs border-t border-neutral-900 mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
@@ -80,6 +82,34 @@ export default function Footer({ settings, onCategorySelect, onOpenAdmin }) {
               <li className="flex items-center space-x-2">
                 <span className="w-1.5 h-1.5 bg-neutral-300 rounded-full" />
                 <span>Amazon India</span>
+              </li>
+              <li className="flex items-center space-x-2 pt-1 border-t border-neutral-900">
+                <button
+                  type="button"
+                  onClick={onOpenAdmin}
+                  className={`flex items-center space-x-2 text-left cursor-pointer transition-colors ${
+                    isCrmActive
+                      ? 'text-emerald-400 font-bold hover:text-emerald-300'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                  title={isCrmActive ? "Merchant CRM Portal (Admin Active)" : "Access Merchant CRM"}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full transition-all ${
+                      isCrmActive
+                        ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.9)] animate-pulse'
+                        : 'bg-neutral-500'
+                    }`}
+                  />
+                  <span className={isCrmActive ? 'text-emerald-400 font-bold tracking-wide' : ''}>
+                    CRM
+                  </span>
+                  {isCrmActive && (
+                    <span className="text-[9px] uppercase tracking-wider font-extrabold text-emerald-400 bg-emerald-950/80 border border-emerald-700/80 px-1.5 py-0.5 rounded ml-1">
+                      Active
+                    </span>
+                  )}
+                </button>
               </li>
             </ul>
           </div>

@@ -26,9 +26,11 @@ import {
   ToggleRight,
   Megaphone,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Menu
 } from 'lucide-react';
 import { formatINR } from '../utils/formatters';
+import AdminMobileDrawer from './AdminMobileDrawer';
 
 export default function AdminDashboard({
   products,
@@ -41,6 +43,7 @@ export default function AdminDashboard({
   onCloseAutoOpenAddModal
 }) {
   const [activeTab, setActiveTab] = useState('products'); // 'products', 'offers', 'analytics', 'settings'
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [analytics, setAnalytics] = useState(null);
   const [offers, setOffers] = useState([]);
   const [loadingOffers, setLoadingOffers] = useState(false);
@@ -428,8 +431,9 @@ export default function AdminDashboard({
                 <span className="font-extrabold text-sm sm:text-base tracking-tight uppercase text-white">
                   THE FASHION HUB
                 </span>
-                <span className="text-[10px] font-bold bg-red-600 text-white px-1.5 py-0.5 tracking-wider uppercase">
-                  CRM
+                <span className="text-[10px] font-bold bg-emerald-600 text-white px-2 py-0.5 tracking-wider uppercase flex items-center space-x-1.5 shadow-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  <span>CRM ONLINE</span>
                 </span>
               </div>
               <p className="text-[10px] text-neutral-400 hidden sm:block">
@@ -438,10 +442,10 @@ export default function AdminDashboard({
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <button
               onClick={handleOpenAdd}
-              className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors cursor-pointer"
+              className="px-3 sm:px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>List Deal</span>
@@ -449,11 +453,22 @@ export default function AdminDashboard({
 
             <button
               onClick={onExitAdmin}
-              className="px-3 py-2 border border-neutral-700 hover:border-white text-white font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors cursor-pointer"
+              className="px-2.5 sm:px-3 py-2 border border-neutral-700 hover:border-white text-white font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors cursor-pointer"
               title="Return to customer storefront"
             >
               <Eye className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">View Store</span>
+            </button>
+
+            {/* Mobile Sidebar Hamburger (Right Side for Android & iOS) */}
+            <button
+              type="button"
+              onClick={() => setIsMobileDrawerOpen(true)}
+              className="p-2 border border-neutral-700 text-neutral-300 hover:text-white hover:bg-neutral-900 md:hidden cursor-pointer focus:outline-none transition-colors"
+              aria-label="Open CRM mobile navigation sidebar"
+              title="Open CRM mobile sidebar"
+            >
+              <Menu className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -1499,6 +1514,20 @@ export default function AdminDashboard({
           </div>
         </div>
       )}
+
+      {/* Mobile Sidebar Navigation Drawer (Android & iOS) */}
+      <AdminMobileDrawer
+        isOpen={isMobileDrawerOpen}
+        onClose={() => setIsMobileDrawerOpen(false)}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        products={products}
+        offers={offers}
+        analytics={analytics}
+        onOpenAddProduct={handleOpenAdd}
+        onOpenAddOffer={handleOpenAddOffer}
+        onExitAdmin={onExitAdmin}
+      />
 
     </div>
   );

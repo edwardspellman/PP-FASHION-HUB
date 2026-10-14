@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowDown, ExternalLink } from 'lucide-react';
 
-export default function HeroBanner({ settings, onExploreClick }) {
+export default function HeroBanner({ settings, onExploreClick, isAdminAuthenticated }) {
   return (
     <div className="hidden lg:block bg-neutral-950 text-white border-b border-neutral-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
@@ -75,6 +75,21 @@ export default function HeroBanner({ settings, onExploreClick }) {
                 </div>
                 <span className="text-red-500 font-bold text-xs">UP TO 80% OFF</span>
               </div>
+
+              {isAdminAuthenticated && (
+                <div className="flex items-center justify-between py-1 border-t border-neutral-800/60">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.9)] animate-pulse" />
+                    <div>
+                      <div className="font-bold text-sm text-emerald-400">CRM PORTAL</div>
+                      <div className="text-xs text-neutral-400">Merchant Operations Active</div>
+                    </div>
+                  </div>
+                  <span className="text-emerald-400 font-bold text-[10px] tracking-wider border border-emerald-800/80 bg-emerald-950/80 px-1.5 py-0.5">
+                    ONLINE
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
