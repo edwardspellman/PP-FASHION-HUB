@@ -278,7 +278,6 @@ export default function App() {
             <HeroBanner 
               settings={settings} 
               onExploreClick={scrollToDeals}
-              isAdminAuthenticated={isAdminAuthenticated}
             />
 
             <div ref={dealsSectionRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-12">
