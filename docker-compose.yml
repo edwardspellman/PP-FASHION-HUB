@@ -1,0 +1,23 @@
+services:
+  the-fashion-hub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fashionhub-app
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - DATA_DIR=/app/server/data
+      - UPLOADS_DIR=/app/server/uploads
+    volumes:
+      - fashionhub-db-data:/app/server/data
+      - fashionhub-uploads-data:/app/server/uploads
+
+volumes:
+  fashionhub-db-data:
+    driver: local
+  fashionhub-uploads-data:
+    driver: local

@@ -1,0 +1,21 @@
+{
+  "siteName": "The Fashion Hub",
+  "tagline": "India's Curated Fashion Deals & Affiliate Storefront",
+  "telegramChannel": "https://t.me/FashionHubDeals",
+  "whatsappGroup": "https://chat.whatsapp.com/sampleInviteLink",
+  "contactEmail": "affiliates@thefashionhub.com",
+  "affiliateTags": {
+    "amazon": "fashionhub-21",
+    "flipkart": "fashionhub_flipkart",
+    "myntra": "fashionhub_myntra",
+    "ajio": "fashionhub_ajio"
+  },
+  "commissionRates": {
+    "amazon": "Up to 9%",
+    "flipkart": "Up to 12%",
+    "myntra": "Up to 8.5%",
+    "ajio": "Up to 8%"
+  },
+  "enableTelegramAlerts": true,
+  "currencySymbol": "₹"
+}

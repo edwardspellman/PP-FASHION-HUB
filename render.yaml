@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: the-fashion-hub
+    runtime: node
+    plan: starter
+    region: oregon
+    buildCommand: npm run build && cd server && npm install
+    startCommand: node server/server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 22.12.0
+      - key: PORT
+        value: 10000
+      - key: DATA_DIR
+        value: /var/data/fashionhub
+      - key: UPLOADS_DIR
+        value: /var/data/uploads
+    disk:
+      name: fashionhub-data
+      mountPath: /var/data
+      sizeGB: 1

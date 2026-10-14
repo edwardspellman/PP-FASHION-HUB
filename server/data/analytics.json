@@ -1,0 +1,50 @@
+{
+  "totalClicks": 2197,
+  "estimatedEarnings": 18516,
+  "recentClicks": [
+    {
+      "productId": "prod-2",
+      "productTitle": "Roadster Men Solid Casual Pure Cotton Oversized Fit Drop Shoulder T-Shirt",
+      "marketplace": "Myntra",
+      "dealPrice": 449,
+      "timestamp": "2026-10-11T20:34:35.961Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    {
+      "productId": "prod-9",
+      "productTitle": "Zaveri Pearls 24K Gold Plated Kundan & Pearls Choker Bridal Jewellery Set",
+      "marketplace": "Amazon",
+      "dealPrice": 499,
+      "timestamp": "2026-10-11T20:07:10.418Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    {
+      "productId": "prod-9",
+      "productTitle": "Zaveri Pearls 24K Gold Plated Kundan & Pearls Choker",
+      "marketplace": "Amazon",
+      "timestamp": "2026-10-11T18:15:20Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    },
+    {
+      "productId": "prod-4",
+      "productTitle": "Puma Unisex Dazzler Lightweight Cushioning Running Sneakers",
+      "marketplace": "Amazon",
+      "timestamp": "2026-10-11T18:12:05Z",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)"
+    },
+    {
+      "productId": "prod-1",
+      "productTitle": "Libas Women Floral Printed Anarkali Kurta Set",
+      "marketplace": "Myntra",
+      "timestamp": "2026-10-11T18:05:32Z",
+      "userAgent": "Mozilla/5.0 (Linux; Android 14)"
+    },
+    {
+      "productId": "prod-3",
+      "productTitle": "Levi's Men 511 Slim Fit Clean Look Stretchable Denim",
+      "marketplace": "Flipkart",
+      "timestamp": "2026-10-11T17:55:10Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    }
+  ]
+}

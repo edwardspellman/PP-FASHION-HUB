@@ -1,0 +1,38 @@
+[
+  {
+    "id": "offer-1",
+    "title": "Myntra End of Reason Sale (EORS) Exclusive",
+    "store": "Myntra",
+    "badge": "MEGA DISCOUNT",
+    "discount": "Up to 80% Off + Extra 15%",
+    "couponCode": "MYNTRAETHNIC15",
+    "validTill": "Tonight 11:59 PM",
+    "affiliateUrl": "https://www.myntra.com?aff_tag=fashionhub_myntra",
+    "isActive": true,
+    "description": "Flat extra 15% discount on top women ethnic wear and branded dresses with verified coupon code."
+  },
+  {
+    "id": "offer-2",
+    "title": "Amazon Wardrobe Refresh Footwear Rush",
+    "store": "Amazon",
+    "badge": "PRICE DROP",
+    "discount": "Flat ₹200 Cashback + 60% Off",
+    "couponCode": "AMZSHOES200",
+    "validTill": "Limited Time",
+    "affiliateUrl": "https://www.amazon.in?tag=fashionhub-21",
+    "isActive": true,
+    "description": "Instant savings on Puma, Adidas, and Nike running sneakers and daily gym trainers."
+  },
+  {
+    "id": "offer-3",
+    "title": "Flipkart Big Fashion Days Denim Mania",
+    "store": "Flipkart",
+    "badge": "BESTSELLER",
+    "discount": "Up to 70% Off on Levi's & Pepe",
+    "couponCode": "FKDENIM150",
+    "validTill": "Valid This Week",
+    "affiliateUrl": "https://www.flipkart.com?affid=fashionhub_flipkart",
+    "isActive": true,
+    "description": "Extra ₹150 off on prepaid orders across stretch denim and casual slim-fit jeans."
+  }
+]
