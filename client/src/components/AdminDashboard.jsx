@@ -515,7 +515,7 @@ export default function AdminDashboard({
                 : 'border-transparent text-neutral-400 hover:text-white'
             }`}
           >
-            Brand Sections ({brandSections.length})
+            Curate Brand Sections ({brandSections.length})
           </button>
 
           <button
@@ -902,10 +902,13 @@ export default function AdminDashboard({
               <div>
                 <h3 className="font-extrabold text-sm uppercase tracking-wide text-neutral-950 dark:text-white flex items-center space-x-2">
                   <Sparkles className="w-4 h-4 text-red-600" />
-                  <span>Custom Brand & Store Showcases</span>
+                  <span>Curate Custom Brand & Store Sections</span>
+                  <span className="bg-red-600 text-white font-bold text-[9px] uppercase tracking-wider px-2 py-0.5 ml-1">
+                    Admin Only
+                  </span>
                 </h3>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                  Create and manage curated showcase sections for Meesho, top brands, and stores on the public storefront.
+                  Curate, create and manage dedicated showcase sections for Meesho, top brands, and stores for the public storefront.
                 </p>
               </div>
 
@@ -914,7 +917,7 @@ export default function AdminDashboard({
                 className="px-4 py-2 bg-neutral-950 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors cursor-pointer shrink-0"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>+ Create Brand Section</span>
+                <span>+ Curate Brand Section</span>
               </button>
             </div>
 

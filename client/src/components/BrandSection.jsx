@@ -56,29 +56,38 @@ export default function BrandSection({
           )}
         </div>
 
-        {/* Right side controls */}
-        <div className="flex items-center space-x-2 shrink-0">
-          <button
-            type="button"
-            onClick={onCreateNewSection}
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700 text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
-            title="Create another custom brand or store section"
-          >
-            <Plus className="w-3.5 h-3.5 text-red-600" />
-            <span>+ Add Brand Section</span>
-          </button>
+        {/* Right side controls - Strictly for Authenticated Admin */}
+        {isAdmin ? (
+          <div className="flex items-center space-x-2 shrink-0">
+            {onCreateNewSection && (
+              <button
+                type="button"
+                onClick={onCreateNewSection}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700 text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
+                title="Create another custom brand or store section"
+              >
+                <Plus className="w-3.5 h-3.5 text-red-600" />
+                <span>+ Add Brand Section</span>
+              </button>
+            )}
 
-          {onDeleteSection && (
-            <button
-              type="button"
-              onClick={() => onDeleteSection(section.id)}
-              className="p-1.5 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 border border-neutral-200 dark:border-neutral-800 hover:border-red-300 dark:hover:border-red-900 cursor-pointer transition-colors"
-              title="Remove this custom section"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
+            {onDeleteSection && (
+              <button
+                type="button"
+                onClick={() => onDeleteSection(section.id)}
+                className="p-1.5 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 border border-neutral-200 dark:border-neutral-800 hover:border-red-300 dark:hover:border-red-900 cursor-pointer transition-colors"
+                title="Remove this custom section"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="hidden sm:flex items-center space-x-1.5 text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest">
+            <span className="w-1.5 h-1.5 bg-red-600 rounded-full" />
+            <span>Verified Drops</span>
+          </div>
+        )}
       </div>
 
       {/* Matching Products Grid */}

@@ -93,10 +93,10 @@ export default function AdminMobileDrawer({
     },
     {
       id: 'sections',
-      label: 'Brand Sections',
+      label: 'Curate Brand Sections',
       icon: Sparkles,
       count: brandSections.length,
-      badge: 'CUSTOM'
+      badge: 'ADMIN'
     },
     {
       id: 'analytics',

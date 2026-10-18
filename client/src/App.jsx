@@ -433,49 +433,27 @@ export default function App() {
                 </section>
               )}
 
-              {/* CUSTOM BRAND SECTIONS (User / Admin created showcase sections) */}
+              {/* CUSTOM BRAND SECTIONS (Curated by Admin, rendered cleanly for Storefront shoppers) */}
               {selectedCategory === 'All' && selectedMarketplace === 'All' && !searchQuery && (
                 <div className="space-y-6">
-                  {/* Create Brand Section Prompt Banner */}
-                  <div className="mb-10 p-4 sm:p-5 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-                    <div className="flex items-center space-x-3 text-center sm:text-left">
-                      <div className="w-9 h-9 bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 flex items-center justify-center shrink-0">
-                        <Sparkles className="w-4 h-4 text-red-500" />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-black uppercase tracking-wider text-neutral-950 dark:text-white">
-                          Curate Custom Brand & Store Sections
-                        </h4>
-                        <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                          Create dedicated showcase sections for Meesho, favorite fashion brands, or curated marketplace collections.
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setIsCreateSectionModalOpen(true)}
-                      className="px-4 py-2 bg-neutral-950 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-neutral-950 text-xs font-bold uppercase tracking-wider transition-colors inline-flex items-center space-x-1.5 cursor-pointer shrink-0"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>+ Create Brand Section</span>
-                    </button>
-                  </div>
-
                   {/* Render active custom brand sections */}
-                  {brandSections.map((sec) => (
-                    <BrandSection
-                      key={sec.id}
-                      section={sec}
-                      products={products}
-                      wishlist={wishlist}
-                      onToggleWishlist={handleToggleWishlist}
-                      onQuickView={setQuickViewProduct}
-                      onAffiliateClick={handleAffiliateClick}
-                      onShowToast={showToast}
-                      onCreateNewSection={() => setIsCreateSectionModalOpen(true)}
-                      onDeleteSection={handleDeleteBrandSection}
-                      isAdmin={isAdminAuthenticated}
-                    />
-                  ))}
+                  {brandSections
+                    .filter((sec) => sec.isActive !== false)
+                    .map((sec) => (
+                      <BrandSection
+                        key={sec.id}
+                        section={sec}
+                        products={products}
+                        wishlist={wishlist}
+                        onToggleWishlist={handleToggleWishlist}
+                        onQuickView={setQuickViewProduct}
+                        onAffiliateClick={handleAffiliateClick}
+                        onShowToast={showToast}
+                        onCreateNewSection={isAdminAuthenticated ? () => setIsCreateSectionModalOpen(true) : undefined}
+                        onDeleteSection={isAdminAuthenticated ? handleDeleteBrandSection : undefined}
+                        isAdmin={isAdminAuthenticated}
+                      />
+                    ))}
                 </div>
               )}
 

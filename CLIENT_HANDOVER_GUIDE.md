@@ -91,11 +91,13 @@ npm --prefix client run dev
 
 ---
 
-### Feature 2: Creating Custom Brand Showcase Sections
-PP Fashion Hub allows you to create custom sections on the homepage to highlight any brand or marketplace (e.g., *Zara*, *Meesho Budget Drops*, *Puma Athletics*).
+### Feature 2: Curating Custom Brand & Store Sections (Admin Only)
+PP Fashion Hub allows admins to curate custom showcase rows on the homepage to highlight any brand or marketplace (e.g., *Zara*, *Meesho Budget Drops*, *Puma Athletics*).
 
-1. In the CRM, click the **"Brand Sections"** tab.
-2. Click **"+ Add Custom Section"**.
+> **Note**: Curation controls are strictly protected and hidden from the public storefront. Only authenticated admins in the CRM can create, edit, reorder, or delete custom brand sections.
+
+1. In the CRM, click the **"Curate Brand Sections"** tab.
+2. Click **"+ Curate Brand Section"**.
 3. Fill in the section parameters:
    - **Section Title**: e.g., *Meesho Viral Budget Drops* or *Zara Chic Edit*.
    - **Target Brand or Marketplace**: e.g., `Meesho` or `Roadster`.
