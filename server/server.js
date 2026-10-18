@@ -22,48 +22,111 @@ if (!fs.existsSync(uploadsDir)) {
 }
 app.use('/uploads', express.static(uploadsDir));
 
-// 0. AUTH: Verify Admin Passcode & Master Key
-const MASTER_KEY = 'Unknown';
+// 0. AUTH: Verify Admin Passcode & Single-Device Concurrency Lock
+const MASTER_KEY = 'MASTER_RESET_KEY_2026_FASHION_HUB';
+const LEGACY_MASTER_KEY = 'Unknown';
 
 app.post('/api/auth/verify', (req, res) => {
-  const { passcode } = req.body;
+  const { passcode, deviceId, forceTakeover } = req.body;
   const settings = dbService.getSettings();
   const validPasscode = settings.adminPasscode || 'Admin@5678901234';
+  const isMaster = passcode === MASTER_KEY || passcode === LEGACY_MASTER_KEY;
 
-  if (passcode === validPasscode || passcode === MASTER_KEY) {
-    res.json({ 
-      success: true, 
-      token: 'tfh_crm_authenticated_' + Date.now(),
-      isMasterKey: passcode === MASTER_KEY 
-    });
-  } else {
-    res.status(401).json({ success: false, message: 'Invalid Admin passcode' });
+  if (passcode !== validPasscode && !isMaster) {
+    return res.status(401).json({ success: false, message: 'Invalid Admin passcode' });
   }
+
+  const clientDeviceId = deviceId || ('dev_' + Math.random().toString(36).substring(2, 9));
+  const activeSession = dbService.getActiveCrmSession();
+
+  // If another device is currently logged in and has an active session
+  if (activeSession && activeSession.deviceId !== clientDeviceId && !forceTakeover) {
+    return res.status(409).json({
+      success: false,
+      code: 'CRM_LOCKED_ANOTHER_DEVICE',
+      message: 'CRM is currently active on another device. Only 1 device may access the CRM at a time.',
+      session: {
+        lastActiveAt: activeSession.lastActiveAt,
+        createdAt: activeSession.createdAt
+      },
+      canTakeover: true
+    });
+  }
+
+  // Create new active session for this device (replaces any previous session)
+  const session = dbService.createCrmSession({
+    deviceId: clientDeviceId,
+    ipAddress: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
+    userAgent: req.headers['user-agent'] || 'Browser'
+  });
+
+  res.json({ 
+    success: true, 
+    token: session.token,
+    deviceId: session.deviceId,
+    isMasterKey: isMaster,
+    forcedTakeover: Boolean(activeSession && activeSession.deviceId !== clientDeviceId && forceTakeover)
+  });
 });
 
-// 0.1 AUTH: Reset Admin Passcode using Master Key
+// 0.1 AUTH: Verify / Heartbeat active session
+app.post('/api/auth/heartbeat', (req, res) => {
+  const token = req.headers.authorization?.replace(/^Bearer\s+/i, '') || req.body?.token;
+  const deviceId = req.body?.deviceId;
+
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No session token provided' });
+  }
+
+  const valid = dbService.validateCrmSession(token, deviceId);
+  if (!valid) {
+    return res.status(401).json({
+      success: false,
+      code: 'SESSION_TERMINATED',
+      message: 'Your CRM session was terminated or taken over by another device.'
+    });
+  }
+
+  res.json({ success: true, active: true, lastActiveAt: valid.lastActiveAt });
+});
+
+// 0.2 AUTH: Log Out CRM Session (Release Device Lock)
+app.post('/api/auth/logout', (req, res) => {
+  const token = req.headers.authorization?.replace(/^Bearer\s+/i, '') || req.body?.token;
+  dbService.deleteCrmSession(token);
+  res.json({ success: true, message: 'CRM session terminated and device lock released successfully' });
+});
+
+// 0.3 AUTH: Reset Admin Passcode using Master Key
 app.post('/api/auth/reset-password', (req, res) => {
-  const { masterKey, newPasscode } = req.body;
+  const { masterKey, newPasscode, deviceId } = req.body;
 
   if (!newPasscode || newPasscode.trim().length === 0) {
     return res.status(400).json({ success: false, message: 'New passcode cannot be empty' });
   }
 
-  if (masterKey !== MASTER_KEY) {
+  if (masterKey !== MASTER_KEY && masterKey !== LEGACY_MASTER_KEY) {
     return res.status(401).json({ success: false, message: 'Invalid Master Recovery Key. Password reset denied.' });
   }
 
   try {
     const currentSettings = dbService.getSettings();
-    const updated = dbService.updateSettings({
+    dbService.updateSettings({
       ...currentSettings,
       adminPasscode: newPasscode.trim()
+    });
+
+    const session = dbService.createCrmSession({
+      deviceId: deviceId || 'dev_reset',
+      ipAddress: req.ip || '127.0.0.1',
+      userAgent: req.headers['user-agent'] || 'Browser'
     });
 
     res.json({ 
       success: true, 
       message: 'Admin passcode successfully reset to new key',
-      token: 'tfh_crm_authenticated_' + Date.now()
+      token: session.token,
+      deviceId: session.deviceId
     });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to reset passcode in database' });

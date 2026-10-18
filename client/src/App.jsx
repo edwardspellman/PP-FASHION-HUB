@@ -235,17 +235,76 @@ export default function App() {
     }
   };
 
-  const handleAdminAuthSuccess = (token) => {
+  const handleAdminAuthSuccess = (token, deviceId) => {
     setIsAdminAuthenticated(true);
     sessionStorage.setItem('tfh_crm_auth', 'true');
+    if (token) sessionStorage.setItem('tfh_crm_token', token);
     setCurrentView('admin');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleAdminLogout = async (forced = false) => {
+    const token = sessionStorage.getItem('tfh_crm_token');
+    const deviceId = localStorage.getItem('tfh_device_id');
+
+    try {
+      if (token && !forced) {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ token, deviceId })
+        });
+      }
+    } catch (err) {}
+
+    sessionStorage.removeItem('tfh_crm_auth');
+    sessionStorage.removeItem('tfh_crm_token');
+    setIsAdminAuthenticated(false);
+    setCurrentView('deals');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (forced) {
+      showToast('CRM session ended: Another device logged in.', 'error');
+    } else {
+      showToast('Logged out of CRM. Device lock released.');
+    }
   };
 
   const handleExitAdmin = () => {
     setCurrentView('deals');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Heartbeat to ensure single-device session liveness & detect session termination
+  useEffect(() => {
+    if (currentView !== 'admin' || !isAdminAuthenticated) return;
+
+    const interval = setInterval(async () => {
+      const token = sessionStorage.getItem('tfh_crm_token');
+      const deviceId = localStorage.getItem('tfh_device_id');
+      if (!token) return;
+
+      try {
+        const res = await fetch('/api/auth/heartbeat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ token, deviceId })
+        });
+        const data = await res.json();
+        if (!data.success && data.code === 'SESSION_TERMINATED') {
+          handleAdminLogout(true);
+        }
+      } catch (err) {}
+    }, 20000);
+
+    return () => clearInterval(interval);
+  }, [currentView, isAdminAuthenticated]);
 
   // Direct affiliate redirect handler
   const handleAffiliateClick = (product) => {
@@ -335,6 +394,7 @@ export default function App() {
               onUpdateSettings={handleUpdateSettings}
               onShowToast={showToast}
               onExitAdmin={handleExitAdmin}
+              onLogout={handleAdminLogout}
               brandSections={brandSections}
               onRefreshBrandSections={fetchBrandSections}
               onCreateBrandSection={() => setIsCreateSectionModalOpen(true)}
@@ -352,8 +412,6 @@ export default function App() {
               scrollToDeals();
             }}
             onOpenAdmin={handleOpenAdmin}
-            isAdminAuthenticated={isAdminAuthenticated}
-            currentView={currentView}
             theme={theme}
             onToggleTheme={toggleTheme}
           />
@@ -518,8 +576,6 @@ export default function App() {
               scrollToDeals();
             }}
             onOpenAdmin={handleOpenAdmin}
-            isAdminAuthenticated={isAdminAuthenticated}
-            currentView={currentView}
             theme={theme}
             onToggleTheme={toggleTheme}
           />

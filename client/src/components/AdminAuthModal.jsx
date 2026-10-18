@@ -15,28 +15,61 @@ export default function AdminAuthModal({
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
+  const [deviceLocked, setDeviceLocked] = useState(false);
 
   if (!isOpen) return null;
 
+  function getOrCreateDeviceId() {
+    try {
+      let id = localStorage.getItem('tfh_device_id');
+      if (!id) {
+        id = 'dev_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+        localStorage.setItem('tfh_device_id', id);
+      }
+      return id;
+    } catch {
+      return 'dev_' + Date.now();
+    }
+  }
+
   // 1. Submit Login
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
+  const handleLoginSubmit = async (e, forceTakeover = false) => {
+    if (e) e.preventDefault();
     setError('');
+    setDeviceLocked(false);
     setLoading(true);
+
+    const deviceId = getOrCreateDeviceId();
 
     try {
       const res = await fetch('/api/auth/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passcode: passcode.trim() })
+        body: JSON.stringify({ 
+          passcode: passcode.trim(),
+          deviceId,
+          forceTakeover
+        })
       });
       const data = await res.json();
 
       if (data.success) {
-        onSuccess(data.token);
+        onSuccess(data.token, data.deviceId);
         onClose();
         setPasscode('');
-        if (onShowToast) onShowToast(data.isMasterKey ? 'Master Key accepted: CRM unlocked' : 'Admin CRM access granted');
+        setDeviceLocked(false);
+        if (onShowToast) {
+          if (data.forcedTakeover) {
+            onShowToast('Session transferred to this device. CRM unlocked.');
+          } else if (data.isMasterKey) {
+            onShowToast('Master Key accepted: CRM unlocked');
+          } else {
+            onShowToast('Admin CRM access granted');
+          }
+        }
+      } else if (res.status === 409 || data.code === 'CRM_LOCKED_ANOTHER_DEVICE') {
+        setDeviceLocked(true);
+        setError(data.message || 'CRM is currently active on another device. Only 1 device may access CRM at a time.');
       } else {
         setError(data.message || 'Incorrect passcode. Please check credentials or reset below.');
       }
@@ -44,7 +77,7 @@ export default function AdminAuthModal({
       // Local fallback for offline/direct access
       const p = passcode.trim();
       if (p === 'Admin@5678901234' || p === 'Unknown' || p === 'admin123' || p === 'admin') {
-        onSuccess('local_token');
+        onSuccess('local_token', deviceId);
         onClose();
         setPasscode('');
         if (onShowToast) onShowToast('Admin CRM access granted');
@@ -171,10 +204,33 @@ export default function AdminAuthModal({
                   <KeyRound className="w-4 h-4 text-neutral-400 absolute right-3 top-1/2 -translate-y-1/2" />
                 </div>
 
-                {error && (
-                  <p className="text-xs text-red-600 dark:text-red-400 font-medium mt-1.5">
-                    {error}
-                  </p>
+                {deviceLocked ? (
+                  <div className="mt-3 p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-950 dark:text-amber-200 space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="w-2 h-2 bg-amber-500 rounded-full animate-ping" />
+                      <span className="text-xs font-black uppercase tracking-wider text-amber-900 dark:text-amber-300">
+                        Single Device Concurrency Lock
+                      </span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-amber-800 dark:text-amber-400">
+                      CRM is currently active on another device. To protect administrative integrity, only 1 device can access the CRM at any time.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => handleLoginSubmit(null, true)}
+                      disabled={loading}
+                      className="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                      <span>{loading ? 'Transferring...' : 'Take Over Session & Force Login'}</span>
+                    </button>
+                  </div>
+                ) : (
+                  error && (
+                    <p className="text-xs text-red-600 dark:text-red-400 font-medium mt-1.5">
+                      {error}
+                    </p>
+                  )
                 )}
 
                 <div className="flex items-center justify-end mt-2 pt-1 border-t border-neutral-100 dark:border-neutral-800 text-[10px]">

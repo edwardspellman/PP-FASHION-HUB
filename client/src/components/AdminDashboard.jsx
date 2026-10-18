@@ -41,6 +41,7 @@ export default function AdminDashboard({
   onUpdateSettings,
   onShowToast,
   onExitAdmin,
+  onLogout,
   autoOpenAddModal,
   onCloseAutoOpenAddModal,
   brandSections = [],
@@ -469,6 +470,17 @@ export default function AdminDashboard({
               <Eye className="w-3.5 h-3.5" />
               <span>View Store</span>
             </button>
+
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="px-3 py-2 bg-red-600/90 hover:bg-red-600 border border-red-500 text-white font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors cursor-pointer"
+                title="Log out of CRM and release single-device session lock"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Log Out</span>
+              </button>
+            )}
 
             {/* Mobile Sidebar Hamburger (Right Side for Android & iOS) */}
             <button
@@ -1221,6 +1233,37 @@ export default function AdminDashboard({
                 </button>
               </div>
             </form>
+
+            {/* SINGLE-DEVICE SESSION SECURITY & LOGOUT */}
+            <div className="mt-8 pt-6 border-t border-neutral-200 dark:border-neutral-800">
+              <div className="p-4 sm:p-5 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="space-y-1 text-center sm:text-left">
+                  <div className="flex items-center space-x-2 justify-center sm:justify-start">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full" />
+                    <h4 className="text-xs font-black uppercase tracking-wider text-neutral-950 dark:text-white">
+                      Single-Device Session Concurrency Gate
+                    </h4>
+                    <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 px-1.5 py-0.5">
+                      Locked to This Device
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                    Exclusive single-device lock is active. No other browser or device can access this CRM until you log out.
+                  </p>
+                </div>
+
+                {onLogout && (
+                  <button
+                    type="button"
+                    onClick={onLogout}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center space-x-1.5 shrink-0"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Log Out & Release Device Lock</span>
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -1695,6 +1738,7 @@ export default function AdminDashboard({
         onOpenAddProduct={handleOpenAdd}
         onOpenAddOffer={handleOpenAddOffer}
         onExitAdmin={onExitAdmin}
+        onLogout={onLogout}
         theme={theme}
         onToggleTheme={onToggleTheme}
       />

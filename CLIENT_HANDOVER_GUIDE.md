@@ -139,6 +139,19 @@ PP Fashion Hub allows admins to curate custom showcase rows on the homepage to h
 
 ---
 
+### Feature 6: Single-Device Concurrency Lock & CRM Log Out
+PP Fashion Hub enforces an exclusive single-device session lock for administrative security:
+
+- **Zero Status on Main Storefront**: When an admin accesses the CRM from any device, the public storefront shows **zero status, zero active badges, and zero glowing lights**. Visitors cannot detect whether an admin is logged in.
+- **Single-Device Concurrency Lock**: Only **one device** may access the CRM at any time. If Device B attempts to enter the CRM while Device A is logged in, access is blocked with a Concurrency Lock notice.
+- **Force Session Takeover**: If you left your session open on a home computer or mobile device, the login modal provides a **"Take Over Session & Force Login"** button to transfer access to your current device immediately.
+- **Logging Out**: To release the device lock for other computers, use the **"Log Out"** button located in:
+  1. The top right of the CRM header.
+  2. The bottom of the CRM mobile sidebar drawer.
+  3. The **"CRM Security & Active Session"** card inside the Settings tab.
+
+---
+
 ## 5. Storefront Customization & Theme Mode
 
 ### Dark / Light Mode Switcher

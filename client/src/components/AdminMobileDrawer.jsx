@@ -12,7 +12,8 @@ import {
   Sparkles,
   Database,
   Sun,
-  Moon
+  Moon,
+  LogOut
 } from 'lucide-react';
 import { formatINR } from '../utils/formatters';
 
@@ -28,6 +29,7 @@ export default function AdminMobileDrawer({
   onOpenAddProduct,
   onOpenAddOffer,
   onExitAdmin,
+  onLogout,
   theme,
   onToggleTheme
 }) {
@@ -275,6 +277,19 @@ export default function AdminMobileDrawer({
               <Eye className="w-3.5 h-3.5 text-neutral-300" />
               <span>View Customer Storefront</span>
             </button>
+
+            {onLogout && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onLogout();
+                }}
+                className="w-full py-2.5 px-3 bg-red-600/90 hover:bg-red-600 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Log Out & Release Lock</span>
+              </button>
+            )}
           </div>
 
         </div>

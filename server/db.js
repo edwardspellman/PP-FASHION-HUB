@@ -86,6 +86,16 @@ db.exec(`
     timestamp TEXT NOT NULL,
     userAgent TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS crm_sessions (
+    id TEXT PRIMARY KEY,
+    deviceId TEXT NOT NULL,
+    token TEXT NOT NULL,
+    ipAddress TEXT,
+    userAgent TEXT,
+    lastActiveAt INTEGER NOT NULL,
+    createdAt INTEGER NOT NULL
+  );
 `);
 
 // Auto-migration from existing JSON files into SQLite
@@ -897,6 +907,72 @@ export const dbService = {
   deleteBrandSection(id) {
     const res = db.prepare('DELETE FROM brand_sections WHERE id = ?').run(id);
     return res.changes > 0;
+  },
+
+  // 6. CRM SINGLE-DEVICE SESSION MANAGEMENT
+  getActiveCrmSession(maxAgeMs = 15 * 60 * 1000) {
+    const cutoff = Date.now() - maxAgeMs;
+    // Clean up expired sessions
+    db.prepare('DELETE FROM crm_sessions WHERE lastActiveAt < ?').run(cutoff);
+    const session = db.prepare('SELECT * FROM crm_sessions ORDER BY lastActiveAt DESC LIMIT 1').get();
+    return session || null;
+  },
+
+  createCrmSession({ deviceId, ipAddress, userAgent }) {
+    // Clear any existing session to ensure single active device exclusivity
+    db.prepare('DELETE FROM crm_sessions').run();
+    const token = 'tfh_crm_authenticated_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    const id = `sess-${Date.now()}`;
+    const now = Date.now();
+    const cleanDeviceId = deviceId || ('dev_' + Math.random().toString(36).substring(2, 9));
+
+    db.prepare(`
+      INSERT INTO crm_sessions (id, deviceId, token, ipAddress, userAgent, lastActiveAt, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(id, cleanDeviceId, token, ipAddress || '127.0.0.1', userAgent || 'Browser', now, now);
+
+    return {
+      id,
+      deviceId: cleanDeviceId,
+      token,
+      ipAddress,
+      userAgent,
+      lastActiveAt: now,
+      createdAt: now
+    };
+  },
+
+  validateCrmSession(token, deviceId, maxAgeMs = 15 * 60 * 1000) {
+    if (!token) return null;
+    const cutoff = Date.now() - maxAgeMs;
+    db.prepare('DELETE FROM crm_sessions WHERE lastActiveAt < ?').run(cutoff);
+
+    const session = db.prepare('SELECT * FROM crm_sessions WHERE token = ?').get(token);
+    if (!session) return null;
+
+    if (deviceId && session.deviceId !== deviceId) {
+      return null;
+    }
+
+    // Touch heartbeat
+    const now = Date.now();
+    db.prepare('UPDATE crm_sessions SET lastActiveAt = ? WHERE id = ?').run(now, session.id);
+    session.lastActiveAt = now;
+    return session;
+  },
+
+  deleteCrmSession(token) {
+    if (token) {
+      db.prepare('DELETE FROM crm_sessions WHERE token = ?').run(token);
+    } else {
+      db.prepare('DELETE FROM crm_sessions').run();
+    }
+    return true;
+  },
+
+  clearAllCrmSessions() {
+    db.prepare('DELETE FROM crm_sessions').run();
+    return true;
   }
 };
 
