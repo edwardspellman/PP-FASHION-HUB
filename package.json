@@ -1,7 +1,7 @@
 {
-  "name": "the-fashion-hub",
+  "name": "pp-fashion-hub",
   "version": "1.0.0",
-  "description": "Curated Fashion Deals & Affiliate Storefront with Native SQLite & Merchant CRM",
+  "description": "PP Fashion Hub - Curated Fashion Deals & Affiliate Storefront with Native SQLite & Merchant CRM",
   "private": true,
   "type": "module",
   "scripts": {

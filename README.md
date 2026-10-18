@@ -1,23 +1,25 @@
-# The Fashion Hub 🛍️
+# PP Fashion Hub 🛍️
 
-A high-performance curated fashion deals and affiliate storefront featuring real-time coupon codes, discount filters, partner store links (Myntra, Flipkart, Amazon), telemetry analytics, and a built-in merchant CRM portal. Powered by React 19, Tailwind CSS, Express, and native Node.js 24 SQLite.
+A high-performance curated fashion deals and affiliate storefront featuring real-time coupon codes, discount filters, partner store links (Myntra, Flipkart, Amazon, Meesho, Ajio), telemetry analytics, custom brand showcase sections, dark/light theme engine, and a built-in merchant CRM portal. Powered by React 19, Tailwind CSS, Express, and native Node.js SQLite.
 
 ---
 
 ## 🚀 Features
 
-- **Strict Editorial Aesthetics**: Ultra-clean monochromatic palette (Black, White, Crimson Red) with zero AI-template look.
+- **Strict Editorial Aesthetics & Dark Mode**: Ultra-clean monochromatic palette with instant toggle between minimalist white Light Mode and rich matte black Dark Mode.
+- **Meesho Integration & Custom Brand Showcases**: Dedicated Meesho budget drop filters, badges, automated affiliate link conversion, and customizable brand sections created on-demand from the CRM.
 - **Mobile Optimized**:
   - Right-side slide-in mobile navigation drawer for thumb ergonomics.
-  - Automatically hides clutter (announcement bar, store tab row, hero banner) on Android & iOS mobile phones and tablets.
+  - Automatically adapts for Android & iOS mobile phones and tablets.
 - **High-Performance Architecture**:
   - Built-in Node.js native SQLite database (`fashionhub.db`) in WAL mode.
   - Sub-millisecond queries, zero external database setup or costs.
   - Asynchronous outbound click telemetry via `navigator.sendBeacon`.
 - **Merchant CRM Portal**:
   - Complete control center to list deals, edit prices, upload photos from computer/mobile, manage flash sales, and configure affiliate tags.
-  - Unlocked with secure passcode `Admin@5678901234` or master emergency recovery key `Unknown`.
+  - Unlocked with secure passcode `Admin@5678901234` or master emergency recovery key `MASTER_RESET_KEY_2026_FASHION_HUB`.
   - Zero sensitive credentials leaked on customer or operator panels.
+- **Client Handover Document**: Step-by-step operating and maintenance guide available in [`CLIENT_HANDOVER_GUIDE.md`](./CLIENT_HANDOVER_GUIDE.md).
 
 ---
 
