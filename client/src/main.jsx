@@ -39,7 +39,7 @@ class ErrorBoundary extends Component {
               !
             </div>
             <h1 className="text-lg font-black uppercase tracking-tight text-neutral-950">
-              The Fashion Hub
+              PP Fashion Hub
             </h1>
             <p className="text-xs text-neutral-600 leading-relaxed">
               An unexpected render issue occurred. You can reload or reset your temporary cache below.

@@ -64,6 +64,19 @@ db.exec(`
     value TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS brand_sections (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    brandOrStore TEXT NOT NULL,
+    type TEXT DEFAULT 'brand',
+    subtitle TEXT,
+    badge TEXT,
+    minDiscount TEXT DEFAULT '',
+    isActive INTEGER DEFAULT 1,
+    sortOrder INTEGER DEFAULT 0,
+    createdAt TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS clicks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     productId TEXT NOT NULL,
@@ -172,7 +185,7 @@ function migrateFromLegacyJson() {
   if (settingsCount === 0) {
     const settingsJsonPath = path.join(dataDir, 'settings.json');
     let settingsData = {
-      siteName: 'The Fashion Hub',
+      siteName: 'PP Fashion Hub',
       tagline: "India's Curated Fashion Deals & Affiliate Storefront",
       telegramChannel: 'https://t.me/FashionHubDeals',
       whatsappGroup: 'https://chat.whatsapp.com/sampleInviteLink',
@@ -222,6 +235,177 @@ function migrateFromLegacyJson() {
       } catch (e) {}
     }
   }
+
+  // 5. Seed Meesho Products if none exist
+  try {
+    const meeshoCount = db.prepare("SELECT COUNT(*) as count FROM products WHERE marketplace = 'Meesho'").get().count;
+    if (meeshoCount === 0) {
+      const insertProd = db.prepare(`
+        INSERT INTO products (
+          id, title, brand, category, subCategory, marketplace, originalPrice, dealPrice,
+          discountPercent, rating, reviewsCount, imageUrl, affiliateUrl, couponCode, couponDiscount,
+          badge, isFeatured, isDealOfTheDay, inStock, description, clicks, createdAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      insertProd.run(
+        'meesho_prod_1',
+        'Anarkali Printed Rayon Kurta with Pant & Dupatta Set',
+        'Adiva',
+        'Women',
+        'Ethnic Wear',
+        'Meesho',
+        1599,
+        449,
+        72,
+        4.6,
+        2180,
+        'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80',
+        'https://www.meesho.com/ethnic-wear/p/1?utm_source=fashionhub_meesho',
+        'MEESHO100',
+        'Extra ₹100 Off',
+        'BESTSELLER',
+        1,
+        1,
+        1,
+        'Premium breathable rayon fabric with intricate foil print. Perfect for casual festive celebrations and daily comfort.',
+        42,
+        new Date().toISOString()
+      );
+
+      insertProd.run(
+        'meesho_prod_2',
+        'Kanjivaram Style Soft Silk Saree with Rich Zari Blouse Piece',
+        'Vardhman',
+        'Women',
+        'Ethnic Wear',
+        'Meesho',
+        2499,
+        649,
+        74,
+        4.7,
+        1420,
+        'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
+        'https://www.meesho.com/sarees/p/2?utm_source=fashionhub_meesho',
+        'SILK50',
+        'Flat ₹50 Off',
+        'HOT DEAL',
+        1,
+        0,
+        1,
+        'Traditional woven golden zari border with matching blouse piece. Feather-light drape with premium gloss finish.',
+        35,
+        new Date().toISOString()
+      );
+
+      insertProd.run(
+        'meesho_prod_3',
+        "Men's Casual Spread Collar Cotton Blend Checks Shirt",
+        'Dennis Lingo',
+        'Men',
+        'Casual Wear',
+        'Meesho',
+        1299,
+        389,
+        70,
+        4.4,
+        890,
+        'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80',
+        'https://www.meesho.com/men-shirts/p/3?utm_source=fashionhub_meesho',
+        'SHIRT40',
+        'Flat ₹40 Off',
+        'BUDGET PICK',
+        1,
+        0,
+        1,
+        'Pre-washed breathable cotton blend check shirt. Ideal for college, office casuals, and weekend outings.',
+        19,
+        new Date().toISOString()
+      );
+
+      insertProd.run(
+        'meesho_prod_4',
+        'Unisex Tokyo Street Oversized Graphic Drop-Shoulder T-Shirt',
+        'Bonkers',
+        'Men',
+        'Streetwear',
+        'Meesho',
+        999,
+        299,
+        70,
+        4.5,
+        1120,
+        'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=800&q=80',
+        'https://www.meesho.com/streetwear/p/4?utm_source=fashionhub_meesho',
+        'DROP20',
+        'Extra 10% Off',
+        'TRENDING',
+        1,
+        0,
+        1,
+        '220 GSM heavyweight combed cotton with anime-inspired back print. Relaxed streetwear silhouette.',
+        28,
+        new Date().toISOString()
+      );
+    }
+  } catch (err) {
+    console.error('Error seeding Meesho products:', err);
+  }
+
+  // 6. Seed Default Custom Brand Sections if none exist
+  try {
+    const brandSectionsCount = db.prepare('SELECT COUNT(*) as count FROM brand_sections').get().count;
+    if (brandSectionsCount === 0) {
+      const insertSection = db.prepare(`
+        INSERT INTO brand_sections (
+          id, title, brandOrStore, type, subtitle, badge, minDiscount, isActive, sortOrder, createdAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      insertSection.run(
+        'sec_meesho_budget',
+        'Meesho Viral Budget Drops',
+        'Meesho',
+        'marketplace',
+        'Trending kurtas, ethnic sets & everyday essentials directly from verified manufacturers',
+        'UNDER ₹499',
+        '50',
+        1,
+        1,
+        new Date().toISOString()
+      );
+
+      insertSection.run(
+        'sec_roadster_casuals',
+        'Roadster Denim & Streetwear',
+        'Roadster',
+        'brand',
+        'Everyday rugged denim, oversized casuals and urban shirts with verified discounts',
+        'FLAT 60%+ OFF',
+        '60',
+        1,
+        2,
+        new Date().toISOString()
+      );
+    }
+  } catch (err) {
+    console.error('Error seeding brand sections:', err);
+  }
+
+  // 7. Ensure Settings contains Meesho Affiliate Tag
+  try {
+    const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('platform_config');
+    if (row) {
+      const cfg = JSON.parse(row.value);
+      if (!cfg.affiliateTags || !cfg.affiliateTags.meesho) {
+        cfg.affiliateTags = {
+          ...cfg.affiliateTags,
+          meesho: 'fashionhub_meesho'
+        };
+        db.prepare('UPDATE settings SET value = ? WHERE key = ?').run(JSON.stringify(cfg), 'platform_config');
+      }
+    }
+  } catch (err) {}
 }
 
 migrateFromLegacyJson();
@@ -241,6 +425,14 @@ function formatProduct(row) {
 }
 
 function formatOffer(row) {
+  if (!row) return null;
+  return {
+    ...row,
+    isActive: Boolean(row.isActive)
+  };
+}
+
+function formatBrandSection(row) {
   if (!row) return null;
   return {
     ...row,
@@ -288,11 +480,11 @@ export const dbService = {
     }
 
     // Sorting
-    if (sort === 'price-low') {
+    if (sort === 'price-low' || sort === 'price_low') {
       sql += ' ORDER BY dealPrice ASC';
-    } else if (sort === 'price-high') {
+    } else if (sort === 'price-high' || sort === 'price_high') {
       sql += ' ORDER BY dealPrice DESC';
-    } else if (sort === 'discount-high') {
+    } else if (sort === 'discount-high' || sort === 'discount_high') {
       sql += ' ORDER BY discountPercent DESC';
     } else if (sort === 'popular') {
       sql += ' ORDER BY clicks DESC';
@@ -632,6 +824,79 @@ export const dbService = {
     `);
     stmt.run(JSON.stringify(merged));
     return merged;
+  },
+
+  // 5. BRAND SECTIONS
+  getBrandSections() {
+    const rows = db.prepare('SELECT * FROM brand_sections ORDER BY sortOrder ASC, id DESC').all();
+    return rows.map(formatBrandSection);
+  },
+
+  createBrandSection(data) {
+    const id = data.id || `sec_${Date.now()}`;
+    const now = new Date().toISOString();
+    const stmt = db.prepare(`
+      INSERT INTO brand_sections (
+        id, title, brandOrStore, type, subtitle, badge, minDiscount, isActive, sortOrder, createdAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    stmt.run(
+      id,
+      data.title || 'Brand Spotlight',
+      data.brandOrStore || 'Meesho',
+      data.type || 'brand',
+      data.subtitle || '',
+      data.badge || 'SPOTLIGHT',
+      data.minDiscount || '',
+      data.isActive !== undefined ? (data.isActive ? 1 : 0) : 1,
+      Number(data.sortOrder) || 0,
+      now
+    );
+
+    const created = db.prepare('SELECT * FROM brand_sections WHERE id = ?').get(id);
+    return formatBrandSection(created);
+  },
+
+  updateBrandSection(id, updates) {
+    const current = db.prepare('SELECT * FROM brand_sections WHERE id = ?').get(id);
+    if (!current) return null;
+
+    const merged = {
+      title: updates.title !== undefined ? updates.title : current.title,
+      brandOrStore: updates.brandOrStore !== undefined ? updates.brandOrStore : current.brandOrStore,
+      type: updates.type !== undefined ? updates.type : current.type,
+      subtitle: updates.subtitle !== undefined ? updates.subtitle : current.subtitle,
+      badge: updates.badge !== undefined ? updates.badge : current.badge,
+      minDiscount: updates.minDiscount !== undefined ? updates.minDiscount : current.minDiscount,
+      isActive: updates.isActive !== undefined ? (updates.isActive ? 1 : 0) : current.isActive,
+      sortOrder: updates.sortOrder !== undefined ? Number(updates.sortOrder) : current.sortOrder
+    };
+
+    db.prepare(`
+      UPDATE brand_sections SET
+        title = ?, brandOrStore = ?, type = ?, subtitle = ?, badge = ?,
+        minDiscount = ?, isActive = ?, sortOrder = ?
+      WHERE id = ?
+    `).run(
+      merged.title,
+      merged.brandOrStore,
+      merged.type,
+      merged.subtitle,
+      merged.badge,
+      merged.minDiscount,
+      merged.isActive,
+      merged.sortOrder,
+      id
+    );
+
+    const updated = db.prepare('SELECT * FROM brand_sections WHERE id = ?').get(id);
+    return formatBrandSection(updated);
+  },
+
+  deleteBrandSection(id) {
+    const res = db.prepare('DELETE FROM brand_sections WHERE id = ?').run(id);
+    return res.changes > 0;
   }
 };
 

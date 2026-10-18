@@ -1,11 +1,19 @@
 import React from 'react';
-import { ShoppingBag, ExternalLink, ShieldCheck, Lock } from 'lucide-react';
+import { ShoppingBag, ExternalLink, ShieldCheck, Lock, Sun, Moon } from 'lucide-react';
 
-export default function Footer({ settings, onCategorySelect, onOpenAdmin, isAdminAuthenticated, currentView }) {
+export default function Footer({ 
+  settings, 
+  onCategorySelect, 
+  onOpenAdmin, 
+  isAdminAuthenticated, 
+  currentView,
+  theme,
+  onToggleTheme 
+}) {
   const isCrmActive = Boolean(isAdminAuthenticated || currentView === 'admin');
 
   return (
-    <footer className="bg-neutral-950 text-neutral-400 text-xs border-t border-neutral-900 mt-20">
+    <footer className="bg-neutral-950 dark:bg-black text-neutral-400 text-xs border-t border-neutral-900 dark:border-neutral-800 mt-20 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           
@@ -16,11 +24,11 @@ export default function Footer({ settings, onCategorySelect, onOpenAdmin, isAdmi
                 <ShoppingBag className="w-4 h-4" />
               </div>
               <span className="font-extrabold text-base text-white tracking-tight">
-                THE FASHION HUB
+                {settings?.siteName ? settings.siteName.toUpperCase() : 'PP FASHION HUB'}
               </span>
             </div>
             <p className="text-neutral-400 text-xs leading-relaxed">
-              Curated affiliate fashion deals aggregator. We curate genuine price drops, promo codes, and trending styles across Myntra, Flipkart, and Amazon.
+              Curated affiliate fashion deals aggregator. We curate genuine price drops, promo codes, and trending styles across Myntra, Meesho, Flipkart, and Amazon.
             </p>
             {settings?.telegramChannel && (
               <a
@@ -76,6 +84,10 @@ export default function Footer({ settings, onCategorySelect, onOpenAdmin, isAdmi
                 <span>Myntra Fashion</span>
               </li>
               <li className="flex items-center space-x-2">
+                <span className="w-1.5 h-1.5 bg-fuchsia-500 rounded-full" />
+                <span>Meesho Deals</span>
+              </li>
+              <li className="flex items-center space-x-2">
                 <span className="w-1.5 h-1.5 bg-neutral-300 rounded-full" />
                 <span>Flipkart Marketplace</span>
               </li>
@@ -123,17 +135,30 @@ export default function Footer({ settings, onCategorySelect, onOpenAdmin, isAdmi
                 <span>All purchases and payments take place directly on the official merchant site. We never handle customer payment details.</span>
               </div>
             </div>
+
+            {onToggleTheme && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={onToggleTheme}
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 border border-neutral-800 hover:border-neutral-700 text-neutral-300 hover:text-white cursor-pointer transition-colors text-[11px] font-medium"
+                >
+                  {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5" />}
+                  <span>{theme === 'dark' ? 'Light Theme' : 'Dark Theme'}</span>
+                </button>
+              </div>
+            )}
           </div>
 
         </div>
 
         {/* Affiliate Disclosure Notice */}
-        <div className="mt-10 pt-8 border-t border-neutral-900 text-[11px] text-neutral-500 space-y-2">
+        <div className="mt-10 pt-8 border-t border-neutral-900 dark:border-neutral-800 text-[11px] text-neutral-500 space-y-2">
           <p className="leading-relaxed">
-            <strong className="text-neutral-400">Affiliate Disclosure:</strong> The Fashion Hub is an affiliate marketing and deal aggregation website. When users click product links to partner platforms (Amazon, Flipkart, Myntra) and make a qualifying purchase, we may earn an affiliate commission at no extra cost to the buyer. All prices and discounts are subject to change by respective retailers.
+            <strong className="text-neutral-400">Affiliate Disclosure:</strong> {settings?.siteName || 'PP Fashion Hub'} is an affiliate marketing and deal aggregation website. When users click product links to partner platforms (Amazon, Flipkart, Myntra, Meesho) and make a qualifying purchase, we may earn an affiliate commission at no extra cost to the buyer. All prices and discounts are subject to change by respective retailers.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-between text-neutral-600 pt-2 gap-2 text-[10px]">
-            <span>© {new Date().getFullYear()} The Fashion Hub. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} {settings?.siteName || 'PP Fashion Hub'}. All rights reserved.</span>
             
             {/* Discreet Merchant CRM Link */}
             <div className="flex items-center space-x-4">

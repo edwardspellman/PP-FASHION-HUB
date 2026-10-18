@@ -3,10 +3,8 @@ import {
   ArrowUpRight, 
   Heart, 
   Tag, 
-  Copy, 
   Check, 
-  Info,
-  ExternalLink 
+  Info
 } from 'lucide-react';
 import { formatINR, calculateSavings } from '../utils/formatters';
 
@@ -46,11 +44,13 @@ export default function ProductCard({
     }
   };
 
+  const isMeesho = product.marketplace?.toLowerCase() === 'meesho';
+
   return (
-    <div className="group bg-white border border-neutral-200 hover:border-neutral-900 transition-colors duration-200 flex flex-col justify-between relative">
+    <div className="group bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-neutral-900 dark:hover:border-neutral-500 transition-colors duration-200 flex flex-col justify-between relative">
       
       {/* Top Image + Overlay */}
-      <div className="relative aspect-[3/4] bg-neutral-100 overflow-hidden">
+      <div className="relative aspect-[3/4] bg-neutral-100 dark:bg-neutral-950 overflow-hidden">
         {/* Direct Link on image */}
         <a
           href={product.affiliateUrl || '#'}
@@ -80,7 +80,7 @@ export default function ProductCard({
             </span>
           )}
           {product.badge && (
-            <span className="bg-neutral-900 text-white font-medium text-[10px] uppercase tracking-wider px-2 py-0.5">
+            <span className="bg-neutral-900 dark:bg-black/85 text-white font-medium text-[10px] uppercase tracking-wider px-2 py-0.5">
               {product.badge}
             </span>
           )}
@@ -97,7 +97,7 @@ export default function ProductCard({
           className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer border ${
             isWishlisted
               ? 'bg-red-600 text-white border-red-600'
-              : 'bg-white/90 text-neutral-800 border-neutral-200 hover:bg-white hover:text-red-600'
+              : 'bg-white/90 dark:bg-neutral-900/90 text-neutral-800 dark:text-neutral-200 border-neutral-200 dark:border-neutral-700 hover:bg-white dark:hover:bg-neutral-800 hover:text-red-600'
           }`}
           title={isWishlisted ? 'Saved in wishlist' : 'Save to wishlist'}
         >
@@ -106,7 +106,11 @@ export default function ProductCard({
 
         {/* Store Badge on Bottom Left of Image */}
         <div className="absolute bottom-3 left-3 pointer-events-none">
-          <span className="bg-white/95 text-neutral-900 font-bold text-[10px] uppercase tracking-wider px-2.5 py-1 border border-neutral-200">
+          <span className={`font-bold text-[10px] uppercase tracking-wider px-2.5 py-1 border shadow-xs ${
+            isMeesho
+              ? 'bg-fuchsia-50 dark:bg-fuchsia-950/80 text-fuchsia-700 dark:text-fuchsia-300 border-fuchsia-300 dark:border-fuchsia-800'
+              : 'bg-white/95 dark:bg-neutral-950/90 text-neutral-900 dark:text-white border-neutral-200 dark:border-neutral-700'
+          }`}>
             {product.marketplace}
           </span>
         </div>
@@ -119,7 +123,7 @@ export default function ProductCard({
             e.stopPropagation();
             onQuickView(product);
           }}
-          className="absolute bottom-3 right-3 w-7 h-7 bg-white/90 hover:bg-white text-neutral-700 hover:text-neutral-950 rounded-full flex items-center justify-center border border-neutral-200 shadow-sm cursor-pointer"
+          className="absolute bottom-3 right-3 w-7 h-7 bg-white/90 dark:bg-neutral-900/90 hover:bg-white dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white rounded-full flex items-center justify-center border border-neutral-200 dark:border-neutral-700 shadow-xs cursor-pointer"
           title="View product specifications & coupons"
         >
           <Info className="w-3.5 h-3.5" />
@@ -130,7 +134,7 @@ export default function ProductCard({
       <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
           {/* Brand & Category */}
-          <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-500 uppercase tracking-widest mb-1">
+          <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mb-1">
             <span>{product.brand}</span>
             <span>{product.category}</span>
           </div>
@@ -141,7 +145,7 @@ export default function ProductCard({
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleDirectClick}
-            className="block font-medium text-neutral-900 text-sm leading-snug line-clamp-2 hover:underline mb-2.5"
+            className="block font-medium text-neutral-900 dark:text-white text-sm leading-snug line-clamp-2 hover:underline mb-2.5"
             title={product.title}
           >
             {product.title}
@@ -149,16 +153,16 @@ export default function ProductCard({
 
           {/* Pricing Row */}
           <div className="flex items-baseline space-x-2.5 mb-2.5">
-            <span className="text-lg font-extrabold text-neutral-950">
+            <span className="text-lg font-extrabold text-neutral-950 dark:text-white">
               {formatINR(product.dealPrice)}
             </span>
             {product.originalPrice > product.dealPrice && (
-              <span className="text-xs text-neutral-400 line-through">
+              <span className="text-xs text-neutral-400 dark:text-neutral-500 line-through">
                 {formatINR(product.originalPrice)}
               </span>
             )}
             {savings > 0 && (
-              <span className="text-xs font-semibold text-red-600">
+              <span className="text-xs font-semibold text-red-600 dark:text-red-400">
                 Save {formatINR(savings)}
               </span>
             )}
@@ -166,14 +170,14 @@ export default function ProductCard({
 
           {/* Coupon Code Row (if available) */}
           {product.couponCode && (
-            <div className="bg-neutral-50 border border-dashed border-neutral-300 px-2.5 py-1.5 mb-3 flex items-center justify-between text-xs">
+            <div className="bg-neutral-50 dark:bg-neutral-950 border border-dashed border-neutral-300 dark:border-neutral-700 px-2.5 py-1.5 mb-3 flex items-center justify-between text-xs">
               <div className="flex items-center space-x-1.5 min-w-0">
                 <Tag className="w-3 h-3 text-red-600 shrink-0" />
-                <span className="font-mono font-bold text-neutral-900 truncate">
+                <span className="font-mono font-bold text-neutral-900 dark:text-white truncate">
                   {product.couponCode}
                 </span>
                 {product.couponDiscount && (
-                  <span className="text-[10px] text-neutral-500 hidden sm:inline">
+                  <span className="text-[10px] text-neutral-500 dark:text-neutral-400 hidden sm:inline">
                     ({product.couponDiscount})
                   </span>
                 )}
@@ -181,7 +185,7 @@ export default function ProductCard({
               <button
                 type="button"
                 onClick={handleCopyCoupon}
-                className="text-[10px] font-bold text-neutral-700 hover:text-black shrink-0 underline ml-2 cursor-pointer flex items-center space-x-1"
+                className="text-[10px] font-bold text-neutral-700 dark:text-neutral-300 hover:text-black dark:hover:text-white shrink-0 underline ml-2 cursor-pointer flex items-center space-x-1"
               >
                 {copiedCoupon ? (
                   <span className="text-red-600 font-bold flex items-center space-x-0.5">
@@ -197,13 +201,17 @@ export default function ProductCard({
         </div>
 
         {/* PRIMARY CTA: Direct Redirect to Platform */}
-        <div className="pt-2 border-t border-neutral-100">
+        <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800">
           <a
             href={product.affiliateUrl || '#'}
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleDirectClick}
-            className="w-full py-2.5 px-3 bg-neutral-950 hover:bg-neutral-800 text-white text-xs sm:text-sm font-bold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer text-center"
+            className={`w-full py-2.5 px-3 font-bold text-xs sm:text-sm flex items-center justify-center space-x-1.5 transition-colors cursor-pointer text-center ${
+              isMeesho
+                ? 'bg-fuchsia-700 hover:bg-fuchsia-800 text-white'
+                : 'bg-neutral-950 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950'
+            }`}
           >
             <span>Buy on {product.marketplace}</span>
             <ArrowUpRight className="w-3.5 h-3.5" />

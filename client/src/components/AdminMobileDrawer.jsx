@@ -2,19 +2,17 @@ import React, { useEffect } from 'react';
 import { 
   X, 
   ShoppingBag, 
-  Tag, 
   Flame, 
   BarChart3, 
   KeyRound, 
   Plus, 
   Eye, 
   Megaphone, 
-  Check, 
   ShieldCheck, 
-  ExternalLink,
   Sparkles,
-  Layers,
-  Database
+  Database,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { formatINR } from '../utils/formatters';
 
@@ -25,10 +23,13 @@ export default function AdminMobileDrawer({
   setActiveTab,
   products = [],
   offers = [],
+  brandSections = [],
   analytics,
   onOpenAddProduct,
   onOpenAddOffer,
-  onExitAdmin
+  onExitAdmin,
+  theme,
+  onToggleTheme
 }) {
   // Lock body scroll when mobile drawer is open (Android & iOS)
   useEffect(() => {
@@ -91,6 +92,13 @@ export default function AdminMobileDrawer({
       badge: 'PROMOS'
     },
     {
+      id: 'sections',
+      label: 'Brand Sections',
+      icon: Sparkles,
+      count: brandSections.length,
+      badge: 'CUSTOM'
+    },
+    {
       id: 'analytics',
       label: 'Click Telemetry',
       icon: BarChart3,
@@ -114,9 +122,9 @@ export default function AdminMobileDrawer({
         aria-hidden="true"
       />
 
-      {/* Slide-out Sidebar Drawer (Right-side ergonomic for mobile thumbs) */}
+      {/* Slide-out Sidebar Drawer */}
       <div 
-        className="relative w-4/5 max-w-xs bg-neutral-950 text-white h-full shadow-2xl flex flex-col justify-between overflow-y-auto border-l border-neutral-800 z-50 animate-in slide-in-from-right duration-200"
+        className="relative w-4/5 max-w-xs bg-neutral-950 dark:bg-black text-white h-full shadow-2xl flex flex-col justify-between overflow-y-auto border-l border-neutral-800 z-50 animate-in slide-in-from-right duration-200"
         role="dialog"
         aria-modal="true"
         aria-label="Merchant CRM Navigation"
@@ -132,7 +140,7 @@ export default function AdminMobileDrawer({
               <div>
                 <div className="flex items-center space-x-1.5">
                   <span className="font-extrabold text-sm tracking-tight uppercase text-white">
-                    THE FASHION HUB
+                    PP FASHION HUB
                   </span>
                 </div>
                 <div className="flex items-center space-x-1.5 mt-0.5">
@@ -247,8 +255,19 @@ export default function AdminMobileDrawer({
             })}
           </div>
 
-          {/* Storefront Access */}
-          <div className="pt-2 border-t border-neutral-900">
+          {/* Theme Toggle & Storefront Access */}
+          <div className="pt-2 border-t border-neutral-900 space-y-2">
+            {onToggleTheme && (
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                className="w-full py-2 px-3 border border-neutral-800 bg-neutral-900/80 text-neutral-300 hover:text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+              >
+                {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5" />}
+                <span>{theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}</span>
+              </button>
+            )}
+
             <button
               onClick={handleViewStore}
               className="w-full py-2.5 px-3 border border-neutral-700 hover:border-white text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition-colors cursor-pointer"
@@ -276,7 +295,7 @@ export default function AdminMobileDrawer({
           </div>
 
           <div className="pt-2 text-center text-[9px] text-neutral-400 uppercase tracking-widest border-t border-neutral-800">
-            THE FASHION HUB &bull; MERCHANT CRM
+            PP FASHION HUB &bull; MERCHANT CRM
           </div>
         </div>
 

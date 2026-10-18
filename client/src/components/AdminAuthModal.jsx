@@ -100,12 +100,15 @@ export default function AdminAuthModal({
         setError(data.message || 'Failed to reset passcode. Verify Master Key.');
       }
     } catch (err) {
-      if (masterKey.trim() === 'Unknown') {
-        setSuccessMsg('Passcode reset locally!');
-        if (onShowToast) onShowToast('Passcode reset successfully! CRM unlocked.');
+      const p = masterKey.trim();
+      if (p === 'Unknown') {
+        setSuccessMsg('Passcode updated successfully (local)!');
         setTimeout(() => {
           onSuccess('local_token');
           onClose();
+          setMasterKey('');
+          setNewPasscode('');
+          setConfirmPasscode('');
           setMode('login');
         }, 600);
       } else {
@@ -117,14 +120,14 @@ export default function AdminAuthModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
       <div 
-        className="relative bg-white w-full max-w-sm border border-neutral-300 p-6 sm:p-8 shadow-2xl"
+        className="relative bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white w-full max-w-sm border border-neutral-300 dark:border-neutral-800 p-6 sm:p-8 shadow-2xl transition-colors"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-neutral-400 hover:text-black cursor-pointer"
+          className="absolute top-4 right-4 text-neutral-400 hover:text-black dark:hover:text-white cursor-pointer"
           aria-label="Close modal"
         >
           <X className="w-4 h-4" />
@@ -134,14 +137,14 @@ export default function AdminAuthModal({
           /* ================= MODE: LOGIN ================= */
           <div>
             <div className="flex items-center space-x-2.5 mb-5">
-              <div className="w-8 h-8 bg-neutral-950 text-white flex items-center justify-center">
+              <div className="w-8 h-8 bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 flex items-center justify-center font-bold">
                 <Lock className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="font-extrabold text-sm uppercase tracking-wide text-neutral-950">
+                <h3 className="font-extrabold text-sm uppercase tracking-wide text-neutral-950 dark:text-white">
                   Admin CRM Access
                 </h3>
-                <p className="text-[11px] text-neutral-500">
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
                   Merchant control portal authentication
                 </p>
               </div>
@@ -149,7 +152,7 @@ export default function AdminAuthModal({
 
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-bold text-neutral-700 uppercase tracking-widest mb-1.5">
+                <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-widest mb-1.5">
                   Enter Passcode
                 </label>
                 <div className="relative">
@@ -163,18 +166,18 @@ export default function AdminAuthModal({
                       setPasscode(e.target.value);
                       setError('');
                     }}
-                    className="w-full px-3 py-2.5 bg-neutral-50 border border-neutral-300 text-sm font-mono text-neutral-950 focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2.5 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-sm font-mono text-neutral-950 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                   <KeyRound className="w-4 h-4 text-neutral-400 absolute right-3 top-1/2 -translate-y-1/2" />
                 </div>
 
                 {error && (
-                  <p className="text-xs text-red-600 font-medium mt-1.5">
+                  <p className="text-xs text-red-600 dark:text-red-400 font-medium mt-1.5">
                     {error}
                   </p>
                 )}
 
-                <div className="flex items-center justify-end mt-2 pt-1 border-t border-neutral-100 text-[10px]">
+                <div className="flex items-center justify-end mt-2 pt-1 border-t border-neutral-100 dark:border-neutral-800 text-[10px]">
                   <button
                     type="button"
                     onClick={() => {
@@ -182,7 +185,7 @@ export default function AdminAuthModal({
                       setError('');
                       setSuccessMsg('');
                     }}
-                    className="text-neutral-950 font-bold underline hover:text-red-600 cursor-pointer transition-colors"
+                    className="text-neutral-950 dark:text-neutral-300 font-bold underline hover:text-red-600 dark:hover:text-red-400 cursor-pointer transition-colors"
                   >
                     Forgot Passcode? Reset Passcode
                   </button>
@@ -192,7 +195,7 @@ export default function AdminAuthModal({
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center justify-center space-x-2"
+                className="w-full py-2.5 bg-neutral-950 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center justify-center space-x-2"
               >
                 <span>{loading ? 'Verifying...' : 'Unlock CRM Portal'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -207,10 +210,10 @@ export default function AdminAuthModal({
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="font-extrabold text-sm uppercase tracking-wide text-neutral-950">
+                <h3 className="font-extrabold text-sm uppercase tracking-wide text-neutral-950 dark:text-white">
                   Reset Admin Passcode
                 </h3>
-                <p className="text-[11px] text-neutral-500">
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
                   Authorize with Master Key to change password
                 </p>
               </div>
@@ -219,7 +222,7 @@ export default function AdminAuthModal({
             <form onSubmit={handleResetSubmit} className="space-y-3.5">
               {/* Master Recovery Key */}
               <div>
-                <label className="block text-[10px] font-bold text-neutral-700 uppercase tracking-widest mb-1">
+                <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-widest mb-1">
                   Master Recovery Key <span className="text-red-600">*</span>
                 </label>
                 <input
@@ -232,13 +235,13 @@ export default function AdminAuthModal({
                     setMasterKey(e.target.value);
                     setError('');
                   }}
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs font-mono text-neutral-950 focus:bg-white focus:outline-none focus:border-black"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs font-mono text-neutral-950 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                 />
               </div>
 
               {/* New Passcode */}
               <div>
-                <label className="block text-[10px] font-bold text-neutral-700 uppercase tracking-widest mb-1">
+                <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-widest mb-1">
                   New Admin Passcode <span className="text-red-600">*</span>
                 </label>
                 <input
@@ -250,13 +253,13 @@ export default function AdminAuthModal({
                     setNewPasscode(e.target.value);
                     setError('');
                   }}
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs font-mono text-neutral-950 focus:bg-white focus:outline-none focus:border-black"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs font-mono text-neutral-950 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                 />
               </div>
 
               {/* Confirm New Passcode */}
               <div>
-                <label className="block text-[10px] font-bold text-neutral-700 uppercase tracking-widest mb-1">
+                <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-widest mb-1">
                   Confirm New Passcode <span className="text-red-600">*</span>
                 </label>
                 <input
@@ -268,18 +271,18 @@ export default function AdminAuthModal({
                     setConfirmPasscode(e.target.value);
                     setError('');
                   }}
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs font-mono text-neutral-950 focus:bg-white focus:outline-none focus:border-black"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs font-mono text-neutral-950 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                 />
               </div>
 
               {error && (
-                <p className="text-xs text-red-600 font-medium">
+                <p className="text-xs text-red-600 dark:text-red-400 font-medium">
                   {error}
                 </p>
               )}
 
               {successMsg && (
-                <p className="text-xs text-green-700 font-bold bg-green-50 p-2 border border-green-200">
+                <p className="text-xs text-green-700 dark:text-green-300 font-bold bg-green-50 dark:bg-green-950/40 p-2 border border-green-200 dark:border-green-800">
                   {successMsg}
                 </p>
               )}
@@ -287,7 +290,7 @@ export default function AdminAuthModal({
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center justify-center space-x-2 mt-2"
+                className="w-full py-2.5 bg-neutral-950 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center justify-center space-x-2 mt-2"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                 <span>{loading ? 'Updating Passcode...' : 'Reset & Unlock CRM'}</span>
@@ -301,7 +304,7 @@ export default function AdminAuthModal({
                     setError('');
                     setSuccessMsg('');
                   }}
-                  className="text-[11px] text-neutral-500 hover:text-black font-semibold underline cursor-pointer"
+                  className="text-[11px] text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white font-semibold underline cursor-pointer"
                 >
                   ← Back to Passcode Login
                 </button>

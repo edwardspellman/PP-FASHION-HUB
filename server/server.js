@@ -304,6 +304,12 @@ app.post('/api/tools/convert-link', (req, res) => {
       const urlObj = new URL(url);
       urlObj.searchParams.set('utm_source', tag);
       convertedUrl = urlObj.toString();
+    } else if (url.includes('meesho.')) {
+      detectedStore = 'Meesho';
+      const tag = tags.meesho || 'fashionhub_meesho';
+      const urlObj = new URL(url);
+      urlObj.searchParams.set('utm_source', tag);
+      convertedUrl = urlObj.toString();
     } else {
       detectedStore = 'Generic E-Commerce';
       convertedUrl = `${url}${url.includes('?') ? '&' : '?'}ref=fashionhub`;
@@ -318,6 +324,49 @@ app.post('/api/tools/convert-link', (req, res) => {
     });
   } catch (err) {
     res.status(400).json({ success: false, message: 'Invalid URL format' });
+  }
+});
+
+// 12. BRAND SECTIONS CRUD ENDPOINTS
+app.get('/api/brand-sections', (req, res) => {
+  try {
+    const sections = dbService.getBrandSections();
+    res.json({ success: true, data: sections });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to fetch brand sections' });
+  }
+});
+
+app.post('/api/brand-sections', (req, res) => {
+  try {
+    const newSection = dbService.createBrandSection(req.body);
+    res.status(201).json({ success: true, data: newSection });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to create brand section' });
+  }
+});
+
+app.put('/api/brand-sections/:id', (req, res) => {
+  try {
+    const updated = dbService.updateBrandSection(req.params.id, req.body);
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Brand section not found' });
+    }
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to update brand section' });
+  }
+});
+
+app.delete('/api/brand-sections/:id', (req, res) => {
+  try {
+    const deleted = dbService.deleteBrandSection(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: 'Brand section not found' });
+    }
+    res.json({ success: true, message: 'Brand section deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to delete brand section' });
   }
 });
 

@@ -27,7 +27,9 @@ import {
   Megaphone,
   CheckCircle2,
   AlertCircle,
-  Menu
+  Menu,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { formatINR } from '../utils/formatters';
 import AdminMobileDrawer from './AdminMobileDrawer';
@@ -40,9 +42,16 @@ export default function AdminDashboard({
   onShowToast,
   onExitAdmin,
   autoOpenAddModal,
-  onCloseAutoOpenAddModal
+  onCloseAutoOpenAddModal,
+  brandSections = [],
+  onRefreshBrandSections,
+  onCreateBrandSection,
+  onDeleteBrandSection,
+  onUpdateBrandSection,
+  theme,
+  onToggleTheme
 }) {
-  const [activeTab, setActiveTab] = useState('products'); // 'products', 'offers', 'analytics', 'settings'
+  const [activeTab, setActiveTab] = useState('products'); // 'products', 'offers', 'sections', 'analytics', 'settings'
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [analytics, setAnalytics] = useState(null);
   const [offers, setOffers] = useState([]);
@@ -97,14 +106,15 @@ export default function AdminDashboard({
 
   // Settings State
   const [settingsForm, setSettingsForm] = useState({
-    siteName: settings?.siteName || 'The Fashion Hub',
+    siteName: settings?.siteName || 'PP Fashion Hub',
     telegramChannel: settings?.telegramChannel || '',
     whatsappGroup: settings?.whatsappGroup || '',
     adminPasscode: settings?.adminPasscode || 'Admin@5678901234',
-    announcementText: settings?.announcementText || 'Flat up to 80% Off on Myntra, Flipkart & Amazon Top Fashion Brands! Verified Coupons inside.',
+    announcementText: settings?.announcementText || 'Flat up to 80% Off on Myntra, Flipkart, Amazon & Meesho Top Fashion Brands! Verified Coupons inside.',
     amazonTag: settings?.affiliateTags?.amazon || 'fashionhub-21',
     flipkartTag: settings?.affiliateTags?.flipkart || 'fashionhub_flipkart',
     myntraTag: settings?.affiliateTags?.myntra || 'fashionhub_myntra',
+    meeshoTag: settings?.affiliateTags?.meesho || 'fashionhub_meesho',
     ajioTag: settings?.affiliateTags?.ajio || 'fashionhub_ajio'
   });
 
@@ -120,6 +130,7 @@ export default function AdminDashboard({
         amazonTag: settings.affiliateTags?.amazon || prev.amazonTag,
         flipkartTag: settings.affiliateTags?.flipkart || prev.flipkartTag,
         myntraTag: settings.affiliateTags?.myntra || prev.myntraTag,
+        meeshoTag: settings.affiliateTags?.meesho || prev.meeshoTag,
         ajioTag: settings.affiliateTags?.ajio || prev.ajioTag
       }));
     }
@@ -400,6 +411,7 @@ export default function AdminDashboard({
         amazon: settingsForm.amazonTag,
         flipkart: settingsForm.flipkartTag,
         myntra: settingsForm.myntraTag,
+        meesho: settingsForm.meeshoTag,
         ajio: settingsForm.ajioTag
       }
     };
@@ -417,10 +429,10 @@ export default function AdminDashboard({
   });
 
   return (
-    <div className="bg-neutral-50 min-h-screen pb-16">
+    <div className="bg-neutral-50 dark:bg-neutral-950 min-h-screen pb-16 text-neutral-900 dark:text-neutral-100 transition-colors">
       
       {/* Top CRM App Bar */}
-      <div className="bg-neutral-950 text-white border-b border-neutral-900 sticky top-0 z-30">
+      <div className="bg-neutral-950 dark:bg-black text-white border-b border-neutral-900 dark:border-neutral-800 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-white text-neutral-950 flex items-center justify-center font-bold">
@@ -428,7 +440,7 @@ export default function AdminDashboard({
             </div>
             <div>
               <span className="font-extrabold text-sm sm:text-base tracking-tight uppercase text-white block">
-                THE FASHION HUB
+                {settings?.siteName ? settings.siteName.toUpperCase() : 'PP FASHION HUB'}
               </span>
               <p className="text-[10px] text-neutral-400 hidden sm:block">
                 Merchant Operations & Product Listing Control Center
@@ -437,6 +449,18 @@ export default function AdminDashboard({
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-3">
+            {onToggleTheme && (
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                className="p-2 border border-neutral-700 hover:border-white text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5" />}
+              </button>
+            )}
+
             <button
               onClick={onExitAdmin}
               className="px-3 py-2 border border-neutral-700 hover:border-white text-white font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors cursor-pointer"
@@ -484,6 +508,17 @@ export default function AdminDashboard({
           </button>
 
           <button
+            onClick={() => setActiveTab('sections')}
+            className={`py-3 px-4 font-bold uppercase tracking-wider transition-colors shrink-0 cursor-pointer border-b-2 ${
+              activeTab === 'sections'
+                ? 'border-white text-white bg-neutral-900'
+                : 'border-transparent text-neutral-400 hover:text-white'
+            }`}
+          >
+            Brand Sections ({brandSections.length})
+          </button>
+
+          <button
             onClick={() => setActiveTab('analytics')}
             className={`py-3 px-4 font-bold uppercase tracking-wider transition-colors shrink-0 cursor-pointer border-b-2 ${
               activeTab === 'analytics'
@@ -511,26 +546,26 @@ export default function AdminDashboard({
 
         {/* CRM Metric Badges */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div className="bg-white p-4 border border-neutral-200">
-            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest block">Total Products</span>
-            <div className="text-xl sm:text-2xl font-black text-neutral-950 mt-1">{products.length}</div>
+          <div className="bg-white dark:bg-neutral-900 p-4 border border-neutral-200 dark:border-neutral-800">
+            <span className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest block">Total Products</span>
+            <div className="text-xl sm:text-2xl font-black text-neutral-950 dark:text-white mt-1">{products.length}</div>
           </div>
 
-          <div className="bg-white p-4 border border-neutral-200">
-            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest block">In-Stock Deals</span>
-            <div className="text-xl sm:text-2xl font-black text-neutral-950 mt-1">
+          <div className="bg-white dark:bg-neutral-900 p-4 border border-neutral-200 dark:border-neutral-800">
+            <span className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest block">In-Stock Deals</span>
+            <div className="text-xl sm:text-2xl font-black text-neutral-950 dark:text-white mt-1">
               {products.filter((p) => p.inStock !== false).length}
             </div>
           </div>
 
-          <div className="bg-white p-4 border border-neutral-200">
-            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest block">Total Outbound Clicks</span>
-            <div className="text-xl sm:text-2xl font-black text-neutral-950 mt-1">{analytics?.totalClicks || 0}</div>
+          <div className="bg-white dark:bg-neutral-900 p-4 border border-neutral-200 dark:border-neutral-800">
+            <span className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest block">Total Outbound Clicks</span>
+            <div className="text-xl sm:text-2xl font-black text-neutral-950 dark:text-white mt-1">{analytics?.totalClicks || 0}</div>
           </div>
 
-          <div className="bg-white p-4 border border-neutral-200">
-            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest block">Est. Commissions</span>
-            <div className="text-xl sm:text-2xl font-black text-red-600 mt-1">
+          <div className="bg-white dark:bg-neutral-900 p-4 border border-neutral-200 dark:border-neutral-800">
+            <span className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest block">Est. Commissions</span>
+            <div className="text-xl sm:text-2xl font-black text-red-600 dark:text-red-500 mt-1">
               {formatINR(analytics?.estimatedEarnings || 0)}
             </div>
           </div>
@@ -538,10 +573,10 @@ export default function AdminDashboard({
 
         {/* TAB 1: PRODUCT LISTING & MANAGEMENT */}
         {activeTab === 'products' && (
-          <div className="bg-white border border-neutral-200">
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
             
             {/* Table Filters & Actions Header */}
-            <div className="p-4 sm:p-5 border-b border-neutral-200 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div className="p-4 sm:p-5 border-b border-neutral-200 dark:border-neutral-800 flex flex-col md:flex-row items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2 w-full md:w-auto flex-1">
                 <div className="relative flex-1 min-w-[200px]">
                   <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -550,17 +585,18 @@ export default function AdminDashboard({
                     placeholder="Search by title or brand..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-neutral-50 border border-neutral-200 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full pl-9 pr-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-700 text-xs text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
 
                 <select
                   value={storeFilter}
                   onChange={(e) => setStoreFilter(e.target.value)}
-                  className="bg-neutral-50 border border-neutral-200 px-3 py-2 text-xs font-bold uppercase text-neutral-800"
+                  className="bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-xs font-bold uppercase text-neutral-800 dark:text-neutral-200 focus:outline-none focus:border-black dark:focus:border-white"
                 >
                   <option value="All">All Stores</option>
                   <option value="Myntra">Myntra</option>
+                  <option value="Meesho">Meesho</option>
                   <option value="Flipkart">Flipkart</option>
                   <option value="Amazon">Amazon</option>
                   <option value="Ajio">Ajio</option>
@@ -569,7 +605,7 @@ export default function AdminDashboard({
                 <select
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="bg-neutral-50 border border-neutral-200 px-3 py-2 text-xs font-bold uppercase text-neutral-800"
+                  className="bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-xs font-bold uppercase text-neutral-800 dark:text-neutral-200 focus:outline-none focus:border-black dark:focus:border-white"
                 >
                   <option value="All">All Categories</option>
                   <option value="Women">Women</option>
@@ -582,7 +618,7 @@ export default function AdminDashboard({
 
               <button
                 onClick={handleOpenAdd}
-                className="w-full md:w-auto px-4 py-2 bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-1.5 cursor-pointer shrink-0"
+                className="w-full md:w-auto px-4 py-2 bg-neutral-950 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-1.5 cursor-pointer shrink-0 transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Product</span>
@@ -592,7 +628,7 @@ export default function AdminDashboard({
             {/* Products Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-neutral-100 border-b border-neutral-200 text-neutral-700 font-bold uppercase tracking-wider text-[10px]">
+                <thead className="bg-neutral-100 dark:bg-neutral-800/80 border-b border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 font-bold uppercase tracking-wider text-[10px]">
                   <tr>
                     <th className="p-3">Product</th>
                     <th className="p-3">Store</th>
@@ -605,44 +641,44 @@ export default function AdminDashboard({
                     <th className="p-3 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-200">
+                <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
                   {filteredProducts.map((p) => (
-                    <tr key={p.id} className="hover:bg-neutral-50">
+                    <tr key={p.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
                       
                       {/* Thumbnail & Title */}
                       <td className="p-3 flex items-center space-x-3">
                         <img
                           src={p.imageUrl || 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=400&q=80'}
                           alt={p.title}
-                          className="w-10 h-12 object-cover object-top border border-neutral-200 shrink-0 bg-neutral-100"
+                          className="w-10 h-12 object-cover object-top border border-neutral-200 dark:border-neutral-700 shrink-0 bg-neutral-100 dark:bg-neutral-800"
                         />
                         <div className="min-w-0 max-w-xs">
                           <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{p.brand}</span>
-                          <p className="font-semibold text-neutral-950 truncate" title={p.title}>{p.title}</p>
-                          <span className="text-[10px] text-neutral-500">{p.category}</span>
+                          <p className="font-semibold text-neutral-950 dark:text-white truncate" title={p.title}>{p.title}</p>
+                          <span className="text-[10px] text-neutral-500 dark:text-neutral-400">{p.category}</span>
                         </div>
                       </td>
 
                       {/* Store */}
                       <td className="p-3">
-                        <span className="px-2 py-0.5 text-[10px] font-bold uppercase border border-neutral-300 text-neutral-900">
+                        <span className="px-2 py-0.5 text-[10px] font-bold uppercase border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-neutral-200 bg-neutral-100 dark:bg-neutral-800">
                           {p.marketplace}
                         </span>
                       </td>
 
                       {/* Price & Discount */}
                       <td className="p-3">
-                        <div className="font-black text-neutral-950">{formatINR(p.dealPrice)}</div>
+                        <div className="font-black text-neutral-950 dark:text-white">{formatINR(p.dealPrice)}</div>
                         <div className="text-[10px] text-neutral-400">
                           MRP: <span className="line-through">{formatINR(p.originalPrice)}</span>
-                          <span className="text-red-600 font-bold ml-1">(-{p.discountPercent}%)</span>
+                          <span className="text-red-600 dark:text-red-500 font-bold ml-1">(-{p.discountPercent}%)</span>
                         </div>
                       </td>
 
                       {/* Coupon */}
                       <td className="p-3">
                         {p.couponCode ? (
-                          <span className="font-mono text-xs font-bold bg-neutral-100 px-1.5 py-0.5 border border-neutral-200 text-neutral-900">
+                          <span className="font-mono text-xs font-bold bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-200">
                             {p.couponCode}
                           </span>
                         ) : (
@@ -657,8 +693,8 @@ export default function AdminDashboard({
                           onClick={() => handleInlineToggle(p, 'inStock')}
                           className={`px-2 py-0.5 text-[10px] font-bold uppercase cursor-pointer border ${
                             p.inStock !== false
-                              ? 'bg-neutral-950 text-white border-neutral-950'
-                              : 'bg-white text-neutral-400 border-neutral-300'
+                              ? 'bg-neutral-950 text-white border-neutral-950 dark:bg-white dark:text-neutral-950 dark:border-white'
+                              : 'bg-white text-neutral-400 border-neutral-300 dark:bg-neutral-800 dark:text-neutral-500 dark:border-neutral-700'
                           }`}
                           title="Click to toggle Stock Status"
                         >
@@ -674,7 +710,7 @@ export default function AdminDashboard({
                           className={`px-2 py-0.5 text-[10px] font-bold uppercase cursor-pointer border ${
                             p.isDealOfTheDay
                               ? 'bg-red-600 text-white border-red-600'
-                              : 'bg-white text-neutral-400 border-neutral-300'
+                              : 'bg-white text-neutral-400 border-neutral-300 dark:bg-neutral-800 dark:text-neutral-500 dark:border-neutral-700'
                           }`}
                           title="Click to toggle Deal of the Day status"
                         >
@@ -683,7 +719,7 @@ export default function AdminDashboard({
                       </td>
 
                       {/* Clicks */}
-                      <td className="p-3 font-bold text-neutral-900">
+                      <td className="p-3 font-bold text-neutral-900 dark:text-neutral-100">
                         {p.clicks || 0}
                       </td>
 
@@ -693,7 +729,7 @@ export default function AdminDashboard({
                           href={p.affiliateUrl || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center space-x-1 px-2 py-0.5 text-[10px] font-bold uppercase border border-neutral-300 hover:border-black text-neutral-800"
+                          className="inline-flex items-center space-x-1 px-2 py-0.5 text-[10px] font-bold uppercase border border-neutral-300 dark:border-neutral-700 hover:border-black dark:hover:border-white text-neutral-800 dark:text-neutral-200 bg-neutral-50 dark:bg-neutral-800 transition-colors"
                           title="Test direct merchant destination"
                         >
                           <span>Test</span>
@@ -705,21 +741,21 @@ export default function AdminDashboard({
                       <td className="p-3 text-right space-x-1 shrink-0">
                         <button
                           onClick={() => handleCloneProduct(p)}
-                          className="p-1 text-neutral-500 hover:text-black cursor-pointer"
+                          className="p-1 text-neutral-500 hover:text-black dark:hover:text-white cursor-pointer"
                           title="Duplicate Deal"
                         >
                           <CopyIcon className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleOpenEdit(p)}
-                          className="p-1 text-neutral-600 hover:text-black cursor-pointer"
+                          className="p-1 text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white cursor-pointer"
                           title="Edit Deal"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteProduct(p.id, p.title)}
-                          className="p-1 text-neutral-400 hover:text-red-600 cursor-pointer"
+                          className="p-1 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 cursor-pointer"
                           title="Delete Deal"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -739,14 +775,14 @@ export default function AdminDashboard({
           <div className="space-y-6">
             
             {/* Top Announcement Bar Manager */}
-            <div className="bg-white p-5 border border-neutral-200">
+            <div className="bg-white dark:bg-neutral-900 p-5 border border-neutral-200 dark:border-neutral-800">
               <div className="flex items-center space-x-2 mb-2">
                 <Megaphone className="w-4 h-4 text-red-600" />
-                <h3 className="font-bold text-xs uppercase tracking-wider text-neutral-950">
+                <h3 className="font-bold text-xs uppercase tracking-wider text-neutral-950 dark:text-white">
                   Global Storefront Announcement Bar
                 </h3>
               </div>
-              <p className="text-xs text-neutral-500 mb-3">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
                 This notice appears across the top of the website for all shoppers.
               </p>
 
@@ -756,11 +792,11 @@ export default function AdminDashboard({
                   value={settingsForm.announcementText}
                   onChange={(e) => setSettingsForm({ ...settingsForm, announcementText: e.target.value })}
                   placeholder="e.g. Mega Weekend Fashion Sale - Extra 20% off on Myntra!"
-                  className="flex-1 px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs focus:bg-white focus:outline-none focus:border-black"
+                  className="flex-1 px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                 />
                 <button
                   onClick={handleSaveSettings}
-                  className="px-4 py-2 bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-xs uppercase tracking-wider cursor-pointer"
+                  className="px-4 py-2 bg-neutral-950 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 font-bold text-xs uppercase tracking-wider cursor-pointer transition-colors"
                 >
                   Save Notice
                 </button>
@@ -768,13 +804,13 @@ export default function AdminDashboard({
             </div>
 
             {/* Offers List & Creator */}
-            <div className="bg-white border border-neutral-200">
-              <div className="p-4 sm:p-5 border-b border-neutral-200 flex items-center justify-between">
+            <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+              <div className="p-4 sm:p-5 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
                 <div>
-                  <h3 className="font-bold text-sm uppercase tracking-wider text-neutral-950">
+                  <h3 className="font-bold text-sm uppercase tracking-wider text-neutral-950 dark:text-white">
                     Active Promotional Offers & Campaigns
                   </h3>
-                  <p className="text-xs text-neutral-500">
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
                     Curate sitewide flash sales, coupon codes, and bank discount deals.
                   </p>
                 </div>
@@ -789,7 +825,7 @@ export default function AdminDashboard({
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-neutral-100 border-b border-neutral-200 text-neutral-700 font-bold uppercase tracking-wider text-[10px]">
+                  <thead className="bg-neutral-100 dark:bg-neutral-800/80 border-b border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 font-bold uppercase tracking-wider text-[10px]">
                     <tr>
                       <th className="p-3">Campaign Title</th>
                       <th className="p-3">Store</th>
@@ -800,34 +836,34 @@ export default function AdminDashboard({
                       <th className="p-3 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-200">
+                  <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
                     {offers.map((offer) => (
-                      <tr key={offer.id} className="hover:bg-neutral-50">
+                      <tr key={offer.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
                         <td className="p-3">
-                          <p className="font-bold text-neutral-950">{offer.title}</p>
-                          <span className="text-[10px] text-neutral-500">{offer.description}</span>
+                          <p className="font-bold text-neutral-950 dark:text-white">{offer.title}</p>
+                          <span className="text-[10px] text-neutral-500 dark:text-neutral-400">{offer.description}</span>
                         </td>
                         <td className="p-3">
-                          <span className="px-2 py-0.5 text-[10px] font-bold uppercase border border-neutral-300">
+                          <span className="px-2 py-0.5 text-[10px] font-bold uppercase border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-neutral-200 bg-neutral-100 dark:bg-neutral-800">
                             {offer.store}
                           </span>
                         </td>
-                        <td className="p-3 font-bold text-red-600">{offer.discount}</td>
+                        <td className="p-3 font-bold text-red-600 dark:text-red-500">{offer.discount}</td>
                         <td className="p-3">
                           {offer.couponCode ? (
-                            <span className="font-mono text-xs font-bold bg-neutral-100 px-1.5 py-0.5 border border-neutral-200">
+                            <span className="font-mono text-xs font-bold bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-200">
                               {offer.couponCode}
                             </span>
                           ) : (
                             <span className="text-neutral-400 italic">—</span>
                           )}
                         </td>
-                        <td className="p-3 text-neutral-600 text-[11px]">{offer.validTill}</td>
+                        <td className="p-3 text-neutral-600 dark:text-neutral-400 text-[11px]">{offer.validTill}</td>
                         <td className="p-3 text-center">
                           <span className={`px-2 py-0.5 text-[10px] font-bold uppercase border ${
                             offer.isActive
-                              ? 'bg-neutral-950 text-white border-neutral-950'
-                              : 'bg-white text-neutral-400 border-neutral-300'
+                              ? 'bg-neutral-950 text-white border-neutral-950 dark:bg-white dark:text-neutral-950 dark:border-white'
+                              : 'bg-white text-neutral-400 border-neutral-300 dark:bg-neutral-800 dark:text-neutral-500 dark:border-neutral-700'
                           }`}>
                             {offer.isActive ? 'Active' : 'Paused'}
                           </span>
@@ -835,14 +871,14 @@ export default function AdminDashboard({
                         <td className="p-3 text-right space-x-1">
                           <button
                             onClick={() => handleOpenEditOffer(offer)}
-                            className="p-1 text-neutral-600 hover:text-black cursor-pointer"
+                            className="p-1 text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white cursor-pointer"
                             title="Edit Offer"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDeleteOffer(offer.id, offer.title)}
-                            className="p-1 text-neutral-400 hover:text-red-600 cursor-pointer"
+                            className="p-1 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 cursor-pointer"
                             title="Delete Offer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -858,29 +894,157 @@ export default function AdminDashboard({
           </div>
         )}
 
+        {/* TAB 2.5: CUSTOM BRAND & STORE SECTIONS */}
+        {activeTab === 'sections' && (
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+            {/* Header & Actions */}
+            <div className="p-4 sm:p-5 border-b border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="font-extrabold text-sm uppercase tracking-wide text-neutral-950 dark:text-white flex items-center space-x-2">
+                  <Sparkles className="w-4 h-4 text-red-600" />
+                  <span>Custom Brand & Store Showcases</span>
+                </h3>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                  Create and manage curated showcase sections for Meesho, top brands, and stores on the public storefront.
+                </p>
+              </div>
+
+              <button
+                onClick={onCreateBrandSection}
+                className="px-4 py-2 bg-neutral-950 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors cursor-pointer shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Create Brand Section</span>
+              </button>
+            </div>
+
+            {/* Sections Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-neutral-50 dark:bg-neutral-800/80 border-b border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 font-bold uppercase tracking-wider text-[10px]">
+                    <th className="p-3">Section Title & Tagline</th>
+                    <th className="p-3">Target Brand / Store</th>
+                    <th className="p-3">Type</th>
+                    <th className="p-3">Badge</th>
+                    <th className="p-3">Min Discount</th>
+                    <th className="p-3">Matching Deals</th>
+                    <th className="p-3 text-center">Status</th>
+                    <th className="p-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                  {brandSections.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="p-12 text-center text-neutral-400">
+                        No custom brand sections created yet. Click "+ Create Brand Section" to feature Meesho or any brand!
+                      </td>
+                    </tr>
+                  ) : (
+                    brandSections.map((sec) => {
+                      const target = (sec.brandOrStore || '').toLowerCase().trim();
+                      const minDisc = Number(sec.minDiscount) || 0;
+                      const matchCount = products.filter((p) => {
+                        const mB = (p.brand || '').toLowerCase().includes(target);
+                        const mS = (p.marketplace || '').toLowerCase().includes(target);
+                        const disc = minDisc > 0 ? (p.discountPercent >= minDisc) : true;
+                        return (mB || mS) && disc && p.inStock !== false;
+                      }).length;
+
+                      return (
+                        <tr key={sec.id} className="hover:bg-neutral-50/80 dark:hover:bg-neutral-800/50 transition-colors">
+                          <td className="p-3">
+                            <div className="font-bold text-neutral-900 dark:text-white text-xs">{sec.title}</div>
+                            {sec.subtitle && (
+                              <div className="text-[11px] text-neutral-400 truncate max-w-xs">{sec.subtitle}</div>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            <span className="font-bold uppercase tracking-wider bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 px-2 py-0.5 border border-neutral-200 dark:border-neutral-700">
+                              {sec.brandOrStore}
+                            </span>
+                          </td>
+                          <td className="p-3 uppercase text-[10px] font-bold text-neutral-500 dark:text-neutral-400">
+                            {sec.type || 'brand'}
+                          </td>
+                          <td className="p-3">
+                            <span className="text-[10px] font-bold uppercase bg-red-600 text-white px-2 py-0.5">
+                              {sec.badge || 'HOT'}
+                            </span>
+                          </td>
+                          <td className="p-3 font-mono text-neutral-700 dark:text-neutral-300">
+                            {sec.minDiscount ? `${sec.minDiscount}%+` : 'Any'}
+                          </td>
+                          <td className="p-3">
+                            <span className="font-bold text-neutral-900 dark:text-white">{matchCount}</span> deals
+                          </td>
+                          <td className="p-3 text-center">
+                            <button
+                              onClick={() => {
+                                if (onUpdateBrandSection) {
+                                  onUpdateBrandSection(sec.id, { isActive: !sec.isActive });
+                                }
+                              }}
+                              className="cursor-pointer"
+                              title="Toggle Visibility"
+                            >
+                              {sec.isActive !== false ? (
+                                <span className="inline-flex items-center text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 border border-emerald-200 dark:border-emerald-800 uppercase">
+                                  Active
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center text-[10px] font-bold text-neutral-400 dark:text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 border border-neutral-200 dark:border-neutral-700 uppercase">
+                                  Disabled
+                                </span>
+                              )}
+                            </button>
+                          </td>
+                          <td className="p-3 text-right">
+                            <button
+                              onClick={() => {
+                                if (onDeleteBrandSection) {
+                                  onDeleteBrandSection(sec.id);
+                                }
+                              }}
+                              className="p-1 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 cursor-pointer transition-colors"
+                              title="Delete Brand Section"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* TAB 3: CLICK TELEMETRY & ANALYTICS */}
         {activeTab === 'analytics' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              <div className="bg-white p-6 border border-neutral-200">
-                <h3 className="font-bold text-xs uppercase tracking-wider text-neutral-950 mb-4">
+              <div className="bg-white dark:bg-neutral-900 p-6 border border-neutral-200 dark:border-neutral-800">
+                <h3 className="font-bold text-xs uppercase tracking-wider text-neutral-950 dark:text-white mb-4">
                   Outbound Clicks by Marketplace
                 </h3>
                 <div className="space-y-3 text-xs">
-                  {['Myntra', 'Flipkart', 'Amazon'].map((store) => {
+                  {['Myntra', 'Meesho', 'Flipkart', 'Amazon'].map((store) => {
                     const count = analytics?.marketplaceClicks?.[store] || 0;
                     const total = analytics?.totalClicks || 1;
                     const pct = Math.round((count / total) * 100);
 
                     return (
                       <div key={store} className="space-y-1">
-                        <div className="flex justify-between font-bold text-neutral-800">
+                        <div className="flex justify-between font-bold text-neutral-800 dark:text-neutral-200">
                           <span>{store}</span>
                           <span>{count} clicks ({pct}%)</span>
                         </div>
-                        <div className="w-full bg-neutral-100 h-2">
-                          <div className="h-full bg-neutral-950" style={{ width: `${Math.max(pct, 3)}%` }} />
+                        <div className="w-full bg-neutral-100 dark:bg-neutral-800 h-2">
+                          <div className="h-full bg-neutral-950 dark:bg-white" style={{ width: `${Math.max(pct, 3)}%` }} />
                         </div>
                       </div>
                     );
@@ -888,19 +1052,19 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              <div className="bg-white p-6 border border-neutral-200">
-                <h3 className="font-bold text-xs uppercase tracking-wider text-neutral-950 mb-4">
+              <div className="bg-white dark:bg-neutral-900 p-6 border border-neutral-200 dark:border-neutral-800">
+                <h3 className="font-bold text-xs uppercase tracking-wider text-neutral-950 dark:text-white mb-4">
                   Top Converting Deals
                 </h3>
                 <div className="space-y-2.5 text-xs">
                   {analytics?.topProducts?.map((tp, idx) => (
-                    <div key={tp.id} className="flex items-center justify-between p-2 border border-neutral-100">
+                    <div key={tp.id} className="flex items-center justify-between p-2 border border-neutral-100 dark:border-neutral-800">
                       <div className="flex items-center space-x-2 truncate max-w-[240px]">
                         <span className="font-bold text-neutral-400">#{idx + 1}</span>
-                        <img src={tp.imageUrl || 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=400&q=80'} alt="" className="w-7 h-7 object-cover border border-neutral-200" />
-                        <span className="font-semibold text-neutral-900 truncate">{tp.title}</span>
+                        <img src={tp.imageUrl || 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=400&q=80'} alt="" className="w-7 h-7 object-cover border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800" />
+                        <span className="font-semibold text-neutral-900 dark:text-white truncate">{tp.title}</span>
                       </div>
-                      <span className="font-bold text-neutral-950 bg-neutral-100 px-2 py-0.5">
+                      <span className="font-bold text-neutral-950 dark:text-white bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5">
                         {tp.clicks} Clicks
                       </span>
                     </div>
@@ -911,13 +1075,13 @@ export default function AdminDashboard({
             </div>
 
             {/* Click Stream Feed */}
-            <div className="bg-white p-6 border border-neutral-200">
-              <h3 className="font-bold text-xs uppercase tracking-wider text-neutral-950 mb-4">
+            <div className="bg-white dark:bg-neutral-900 p-6 border border-neutral-200 dark:border-neutral-800">
+              <h3 className="font-bold text-xs uppercase tracking-wider text-neutral-950 dark:text-white mb-4">
                 Real-Time Outbound Click Feed
               </h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left">
-                  <thead className="bg-neutral-100 text-neutral-700 font-bold uppercase text-[10px]">
+                  <thead className="bg-neutral-100 dark:bg-neutral-800/80 text-neutral-700 dark:text-neutral-300 font-bold uppercase text-[10px]">
                     <tr>
                       <th className="p-2.5">Deal Product</th>
                       <th className="p-2.5">Store</th>
@@ -925,13 +1089,13 @@ export default function AdminDashboard({
                       <th className="p-2.5">Device/User-Agent</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-100">
+                  <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
                     {analytics?.recentClicks?.map((click, i) => (
-                      <tr key={i} className="hover:bg-neutral-50">
-                        <td className="p-2.5 font-semibold text-neutral-900">{click.productTitle}</td>
-                        <td className="p-2.5 font-bold">{click.marketplace}</td>
-                        <td className="p-2.5 text-neutral-500">{new Date(click.timestamp).toLocaleTimeString()}</td>
-                        <td className="p-2.5 text-neutral-500 font-mono text-[10px] truncate max-w-xs">{click.userAgent}</td>
+                      <tr key={i} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
+                        <td className="p-2.5 font-semibold text-neutral-900 dark:text-white">{click.productTitle}</td>
+                        <td className="p-2.5 font-bold text-neutral-900 dark:text-neutral-200">{click.marketplace}</td>
+                        <td className="p-2.5 text-neutral-500 dark:text-neutral-400">{new Date(click.timestamp).toLocaleTimeString()}</td>
+                        <td className="p-2.5 text-neutral-500 dark:text-neutral-400 font-mono text-[10px] truncate max-w-xs">{click.userAgent}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -943,12 +1107,12 @@ export default function AdminDashboard({
 
         {/* TAB 4: AFFILIATE KEYS & SETTINGS */}
         {activeTab === 'settings' && (
-          <div className="bg-white p-6 sm:p-8 border border-neutral-200 max-w-2xl space-y-5 text-xs">
+          <div className="bg-white dark:bg-neutral-900 p-6 sm:p-8 border border-neutral-200 dark:border-neutral-800 max-w-2xl space-y-5 text-xs">
             <div>
-              <h2 className="text-base font-black uppercase text-neutral-950 mb-1">
+              <h2 className="text-base font-black uppercase text-neutral-950 dark:text-white mb-1">
                 Affiliate Tags & Platform Settings
               </h2>
-              <p className="text-neutral-500 text-xs">
+              <p className="text-neutral-500 dark:text-neutral-400 text-xs">
                 These tags are appended to all product affiliate links to ensure your store commission is properly attributed.
               </p>
             </div>
@@ -956,56 +1120,68 @@ export default function AdminDashboard({
             <form onSubmit={handleSaveSettings} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-600 uppercase mb-1">
+                  <label className="block text-[10px] font-bold text-neutral-600 dark:text-neutral-300 uppercase mb-1">
                     Amazon Associate Tag
                   </label>
                   <input
                     type="text"
                     value={settingsForm.amazonTag}
                     onChange={(e) => setSettingsForm({ ...settingsForm, amazonTag: e.target.value })}
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 font-mono text-xs focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 font-mono text-xs text-neutral-900 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-600 uppercase mb-1">
+                  <label className="block text-[10px] font-bold text-neutral-600 dark:text-neutral-300 uppercase mb-1">
                     Flipkart Affiliate ID
                   </label>
                   <input
                     type="text"
                     value={settingsForm.flipkartTag}
                     onChange={(e) => setSettingsForm({ ...settingsForm, flipkartTag: e.target.value })}
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 font-mono text-xs focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 font-mono text-xs text-neutral-900 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-600 uppercase mb-1">
+                  <label className="block text-[10px] font-bold text-neutral-600 dark:text-neutral-300 uppercase mb-1">
                     Myntra Partner Tag
                   </label>
                   <input
                     type="text"
                     value={settingsForm.myntraTag}
                     onChange={(e) => setSettingsForm({ ...settingsForm, myntraTag: e.target.value })}
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 font-mono text-xs focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 font-mono text-xs text-neutral-900 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-600 uppercase mb-1">
+                  <label className="block text-[10px] font-bold text-neutral-600 dark:text-neutral-300 uppercase mb-1">
+                    Meesho Referral / Partner Tag
+                  </label>
+                  <input
+                    type="text"
+                    value={settingsForm.meeshoTag}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, meeshoTag: e.target.value })}
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 font-mono text-xs text-neutral-900 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-neutral-600 dark:text-neutral-300 uppercase mb-1">
                     Ajio Partner Tag
                   </label>
                   <input
                     type="text"
                     value={settingsForm.ajioTag}
                     onChange={(e) => setSettingsForm({ ...settingsForm, ajioTag: e.target.value })}
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 font-mono text-xs focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 font-mono text-xs text-neutral-900 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-neutral-100">
-                <label className="block text-[10px] font-bold text-neutral-600 uppercase mb-1">
+              <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800">
+                <label className="block text-[10px] font-bold text-neutral-600 dark:text-neutral-300 uppercase mb-1">
                   Telegram Deals Channel URL
                 </label>
                 <input
@@ -1013,12 +1189,12 @@ export default function AdminDashboard({
                   value={settingsForm.telegramChannel}
                   onChange={(e) => setSettingsForm({ ...settingsForm, telegramChannel: e.target.value })}
                   placeholder="https://t.me/FashionHubDeals"
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs focus:bg-white focus:outline-none focus:border-black"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs text-neutral-900 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-neutral-600 uppercase mb-1">
+                <label className="block text-[10px] font-bold text-neutral-600 dark:text-neutral-300 uppercase mb-1">
                   Admin Security Passcode
                 </label>
                 <input
@@ -1026,7 +1202,7 @@ export default function AdminDashboard({
                   value={settingsForm.adminPasscode}
                   onChange={(e) => setSettingsForm({ ...settingsForm, adminPasscode: e.target.value })}
                   placeholder="••••••••"
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 font-mono text-xs focus:bg-white focus:outline-none focus:border-black"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 font-mono text-xs text-neutral-900 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                 />
                 <p className="text-[10px] text-neutral-400 mt-1">
                   This key locks and unlocks the Merchant CRM portal. Keep it confidential.
@@ -1036,7 +1212,7 @@ export default function AdminDashboard({
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-xs uppercase tracking-wider cursor-pointer"
+                  className="px-6 py-2.5 bg-neutral-950 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 font-bold text-xs uppercase tracking-wider cursor-pointer transition-colors"
                 >
                   Save Settings
                 </button>
@@ -1049,31 +1225,31 @@ export default function AdminDashboard({
 
       {/* FULL PRODUCT CREATION & EDIT MODAL WITH IMAGE UPLOAD */}
       {showProductModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in">
           <div 
-            className="relative bg-white w-full max-w-2xl border border-neutral-300 p-6 sm:p-8 max-h-[90vh] overflow-y-auto"
+            className="relative bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white w-full max-w-2xl border border-neutral-300 dark:border-neutral-800 p-6 sm:p-8 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setShowProductModal(false)}
-              className="absolute top-5 right-5 w-8 h-8 text-neutral-500 hover:text-black flex items-center justify-center cursor-pointer"
+              className="absolute top-5 right-5 w-8 h-8 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white flex items-center justify-center cursor-pointer transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h2 className="text-base sm:text-lg font-black uppercase text-neutral-950 mb-1">
+            <h2 className="text-base sm:text-lg font-black uppercase text-neutral-950 dark:text-white mb-1">
               {editingProduct ? 'Edit Affiliate Product Deal' : 'List New Affiliate Product'}
             </h2>
-            <p className="text-xs text-neutral-500 mb-6">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-6">
               Upload product image, set offer prices, and input target affiliate link.
             </p>
 
             <form onSubmit={handleSaveProduct} className="space-y-4 text-xs">
               
               {/* IMAGE UPLOAD DROPZONE */}
-              <div className="border-2 border-dashed border-neutral-300 p-4 bg-neutral-50 flex flex-col sm:flex-row items-center gap-4">
+              <div className="border-2 border-dashed border-neutral-300 dark:border-neutral-700 p-4 bg-neutral-50 dark:bg-neutral-950 flex flex-col sm:flex-row items-center gap-4">
                 {uploadPreview ? (
-                  <div className="relative w-24 h-28 bg-white border border-neutral-200 shrink-0">
+                  <div className="relative w-24 h-28 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 shrink-0">
                     <img
                       src={uploadPreview}
                       alt="Preview"
@@ -1085,14 +1261,14 @@ export default function AdminDashboard({
                         setUploadPreview('');
                         setFormData((prev) => ({ ...prev, imageUrl: '' }));
                       }}
-                      className="absolute -top-2 -right-2 bg-neutral-950 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px]"
+                      className="absolute -top-2 -right-2 bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 w-5 h-5 rounded-full flex items-center justify-center text-[10px] cursor-pointer"
                       title="Clear image"
                     >
                       ✕
                     </button>
                   </div>
                 ) : (
-                  <div className="w-24 h-28 border border-neutral-200 bg-white flex flex-col items-center justify-center text-neutral-400 shrink-0">
+                  <div className="w-24 h-28 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 flex flex-col items-center justify-center text-neutral-400 shrink-0">
                     <ImageIcon className="w-6 h-6 mb-1" />
                     <span className="text-[10px]">No Image</span>
                   </div>
@@ -1100,8 +1276,8 @@ export default function AdminDashboard({
 
                 <div className="flex-1 space-y-2 text-center sm:text-left">
                   <div>
-                    <span className="font-bold text-neutral-900 block text-xs">Product Imagery</span>
-                    <p className="text-[11px] text-neutral-500">
+                    <span className="font-bold text-neutral-900 dark:text-white block text-xs">Product Imagery</span>
+                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
                       Upload product photo directly from your device (JPG, PNG, WebP).
                     </p>
                   </div>
@@ -1117,13 +1293,13 @@ export default function AdminDashboard({
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="px-3.5 py-2 bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-xs uppercase tracking-wider inline-flex items-center space-x-1.5 cursor-pointer"
+                      className="px-3.5 py-2 bg-neutral-950 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 font-bold text-xs uppercase tracking-wider inline-flex items-center space-x-1.5 cursor-pointer transition-colors"
                     >
                       <Upload className="w-3.5 h-3.5" />
                       <span>{uploadingImage ? 'Uploading Image...' : uploadPreview ? 'Change Product Image' : 'Upload Image from Device'}</span>
                     </button>
                     {uploadPreview && (
-                      <span className="text-[11px] text-emerald-600 font-semibold flex items-center space-x-1">
+                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center space-x-1">
                         <Check className="w-3 h-3" />
                         <span>Image Ready</span>
                       </span>
@@ -1135,7 +1311,7 @@ export default function AdminDashboard({
               {/* Title & Brand */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
-                  <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">
+                  <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">
                     Product Title <span className="text-red-600">*</span>
                   </label>
                   <input
@@ -1144,12 +1320,12 @@ export default function AdminDashboard({
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="e.g. Libas Floral Printed Pure Cotton Anarkali Kurta"
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">
+                  <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">
                     Brand Name <span className="text-red-600">*</span>
                   </label>
                   <input
@@ -1158,20 +1334,21 @@ export default function AdminDashboard({
                     value={formData.brand}
                     onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                     placeholder="e.g. Puma, Libas, Levi's"
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">
+                  <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">
                     Marketplace <span className="text-red-600">*</span>
                   </label>
                   <select
                     value={formData.marketplace}
                     onChange={(e) => setFormData({ ...formData, marketplace: e.target.value })}
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs font-bold uppercase focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs font-bold uppercase text-neutral-900 dark:text-white focus:outline-none focus:border-black dark:focus:border-white"
                   >
                     <option value="Myntra">Myntra</option>
+                    <option value="Meesho">Meesho</option>
                     <option value="Flipkart">Flipkart</option>
                     <option value="Amazon">Amazon</option>
                     <option value="Ajio">Ajio</option>
@@ -1179,11 +1356,11 @@ export default function AdminDashboard({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">Category</label>
+                  <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">Category</label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-black dark:focus:border-white"
                   >
                     <option value="Women">Women</option>
                     <option value="Men">Men</option>
@@ -1194,19 +1371,19 @@ export default function AdminDashboard({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">Subcategory</label>
+                  <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">Subcategory</label>
                   <input
                     type="text"
                     value={formData.subCategory}
                     onChange={(e) => setFormData({ ...formData, subCategory: e.target.value })}
                     placeholder="e.g. Ethnic Wear, Sneakers"
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
 
                 {/* Pricing & Offer */}
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">
+                  <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">
                     Original MRP (₹) <span className="text-red-600">*</span>
                   </label>
                   <input
@@ -1215,12 +1392,12 @@ export default function AdminDashboard({
                     value={formData.originalPrice}
                     onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value })}
                     placeholder="2999"
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">
+                  <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">
                     Deal / Offer Price (₹) <span className="text-red-600">*</span>
                   </label>
                   <input
@@ -1229,14 +1406,14 @@ export default function AdminDashboard({
                     value={formData.dealPrice}
                     onChange={(e) => setFormData({ ...formData, dealPrice: e.target.value })}
                     placeholder="899"
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs font-bold text-red-600 focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs font-bold text-red-600 dark:text-red-500 focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
 
                 {/* Target Affiliate Link */}
                 <div className="sm:col-span-2">
                   <div className="flex justify-between items-center mb-1">
-                    <label className="text-[10px] font-bold text-neutral-900 uppercase">
+                    <label className="text-[10px] font-bold text-neutral-900 dark:text-white uppercase">
                       Target Affiliate Redirect URL <span className="text-red-600">*</span>
                     </label>
                     {formData.affiliateUrl && (
@@ -1244,7 +1421,7 @@ export default function AdminDashboard({
                         href={formData.affiliateUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[10px] text-neutral-700 hover:text-black underline flex items-center space-x-0.5"
+                        className="text-[10px] text-neutral-700 dark:text-neutral-300 hover:text-black dark:hover:text-white underline flex items-center space-x-0.5"
                       >
                         <span>Test Outbound URL</span>
                         <ExternalLink className="w-2.5 h-2.5" />
@@ -1257,42 +1434,42 @@ export default function AdminDashboard({
                     value={formData.affiliateUrl}
                     onChange={(e) => setFormData({ ...formData, affiliateUrl: e.target.value })}
                     placeholder="https://www.myntra.com/... or https://www.amazon.in/... with affiliate tag"
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-400 font-mono text-xs focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-400 dark:border-neutral-700 font-mono text-xs text-neutral-900 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
-                  <p className="text-[10px] text-neutral-500 mt-1">
+                  <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-1">
                     When shoppers click the deal on your website, they redirect immediately to this exact URL.
                   </p>
                 </div>
 
                 {/* Coupon Code */}
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">Coupon Code (Optional)</label>
+                  <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">Coupon Code (Optional)</label>
                   <input
                     type="text"
                     value={formData.couponCode}
                     onChange={(e) => setFormData({ ...formData, couponCode: e.target.value.toUpperCase() })}
                     placeholder="e.g. FLASH20"
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 font-mono text-xs focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 font-mono text-xs text-neutral-900 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">Coupon Discount Label</label>
+                  <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">Coupon Discount Label</label>
                   <input
                     type="text"
                     value={formData.couponDiscount}
                     onChange={(e) => setFormData({ ...formData, couponDiscount: e.target.value })}
                     placeholder="e.g. Extra 20% OFF"
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs text-neutral-900 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">Badge Tag</label>
+                  <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">Badge Tag</label>
                   <select
                     value={formData.badge}
                     onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs font-bold uppercase focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs font-bold uppercase text-neutral-900 dark:text-white focus:outline-none focus:border-black dark:focus:border-white"
                   >
                     <option value="HOT DEAL">HOT DEAL</option>
                     <option value="PRICE DROP">PRICE DROP</option>
@@ -1310,9 +1487,9 @@ export default function AdminDashboard({
                       type="checkbox"
                       checked={formData.inStock}
                       onChange={(e) => setFormData({ ...formData, inStock: e.target.checked })}
-                      className="w-4 h-4 accent-black"
+                      className="w-4 h-4 accent-black dark:accent-white"
                     />
-                    <span className="font-bold text-neutral-900 text-xs">In Stock</span>
+                    <span className="font-bold text-neutral-900 dark:text-white text-xs">In Stock</span>
                   </label>
 
                   <label className="inline-flex items-center space-x-2 cursor-pointer">
@@ -1320,9 +1497,9 @@ export default function AdminDashboard({
                       type="checkbox"
                       checked={formData.isDealOfTheDay}
                       onChange={(e) => setFormData({ ...formData, isDealOfTheDay: e.target.checked })}
-                      className="w-4 h-4 accent-black"
+                      className="w-4 h-4 accent-black dark:accent-white"
                     />
-                    <span className="font-bold text-neutral-900 text-xs">Deal of Day</span>
+                    <span className="font-bold text-neutral-900 dark:text-white text-xs">Deal of Day</span>
                   </label>
 
                   <label className="inline-flex items-center space-x-2 cursor-pointer">
@@ -1330,24 +1507,24 @@ export default function AdminDashboard({
                       type="checkbox"
                       checked={formData.isFeatured}
                       onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                      className="w-4 h-4 accent-black"
+                      className="w-4 h-4 accent-black dark:accent-white"
                     />
-                    <span className="font-bold text-neutral-900 text-xs">Featured</span>
+                    <span className="font-bold text-neutral-900 dark:text-white text-xs">Featured</span>
                   </label>
                 </div>
               </div>
 
-              <div className="pt-4 flex items-center justify-end space-x-3 border-t border-neutral-100">
+              <div className="pt-4 flex items-center justify-end space-x-3 border-t border-neutral-100 dark:border-neutral-800">
                 <button
                   type="button"
                   onClick={() => setShowProductModal(false)}
-                  className="px-4 py-2 border border-neutral-300 text-neutral-700 hover:text-black font-bold uppercase text-xs cursor-pointer"
+                  className="px-4 py-2 border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:text-black dark:hover:text-white font-bold uppercase text-xs cursor-pointer transition-colors hover:border-black dark:hover:border-white"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-neutral-950 hover:bg-neutral-800 text-white font-bold uppercase text-xs cursor-pointer"
+                  className="px-6 py-2 bg-neutral-950 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 font-bold uppercase text-xs cursor-pointer transition-colors"
                 >
                   {editingProduct ? 'Save Deal Updates' : 'Publish Product to Store'}
                 </button>
@@ -1360,28 +1537,28 @@ export default function AdminDashboard({
 
       {/* CREATE / EDIT OFFER CAMPAIGN MODAL */}
       {showOfferModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in">
           <div 
-            className="relative bg-white w-full max-w-lg border border-neutral-300 p-6 sm:p-8"
+            className="relative bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white w-full max-w-lg border border-neutral-300 dark:border-neutral-800 p-6 sm:p-8"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setShowOfferModal(false)}
-              className="absolute top-4 right-4 text-neutral-500 hover:text-black cursor-pointer"
+              className="absolute top-4 right-4 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white cursor-pointer transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h2 className="text-base font-black uppercase text-neutral-950 mb-1">
+            <h2 className="text-base font-black uppercase text-neutral-950 dark:text-white mb-1">
               {editingOffer ? 'Edit Promotional Offer' : 'Create New Promotional Campaign'}
             </h2>
-            <p className="text-xs text-neutral-500 mb-5">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-5">
               Highlight marketplace discount events and promo codes on the storefront.
             </p>
 
             <form onSubmit={handleSaveOffer} className="space-y-3 text-xs">
               <div>
-                <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">
+                <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">
                   Offer Title <span className="text-red-600">*</span>
                 </label>
                 <input
@@ -1390,19 +1567,20 @@ export default function AdminDashboard({
                   value={offerFormData.title}
                   onChange={(e) => setOfferFormData({ ...offerFormData, title: e.target.value })}
                   placeholder="e.g. Myntra Fashion Carnival 75% Off"
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs focus:bg-white focus:outline-none focus:border-black"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">Marketplace</label>
+                  <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">Marketplace</label>
                   <select
                     value={offerFormData.store}
                     onChange={(e) => setOfferFormData({ ...offerFormData, store: e.target.value })}
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs font-bold uppercase focus:outline-none"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs font-bold uppercase text-neutral-900 dark:text-white focus:outline-none focus:border-black dark:focus:border-white"
                   >
                     <option value="Myntra">Myntra</option>
+                    <option value="Meesho">Meesho</option>
                     <option value="Flipkart">Flipkart</option>
                     <option value="Amazon">Amazon</option>
                     <option value="Ajio">Ajio</option>
@@ -1410,61 +1588,61 @@ export default function AdminDashboard({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">Discount Headline</label>
+                  <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">Discount Headline</label>
                   <input
                     type="text"
                     required
                     value={offerFormData.discount}
                     onChange={(e) => setOfferFormData({ ...offerFormData, discount: e.target.value })}
                     placeholder="e.g. Flat 70% Off + 15%"
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs font-bold text-red-600 focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs font-bold text-red-600 dark:text-red-500 focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">Coupon Code (Optional)</label>
+                  <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">Coupon Code (Optional)</label>
                   <input
                     type="text"
                     value={offerFormData.couponCode}
                     onChange={(e) => setOfferFormData({ ...offerFormData, couponCode: e.target.value.toUpperCase() })}
                     placeholder="e.g. EORS15"
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 font-mono text-xs focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 font-mono text-xs text-neutral-900 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">Valid Till</label>
+                  <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">Valid Till</label>
                   <input
                     type="text"
                     value={offerFormData.validTill}
                     onChange={(e) => setOfferFormData({ ...offerFormData, validTill: e.target.value })}
                     placeholder="e.g. Tonight 11:59 PM"
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs focus:bg-white focus:outline-none focus:border-black"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs text-neutral-900 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">Target Campaign URL</label>
+                <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">Target Campaign URL</label>
                 <input
                   type="url"
                   value={offerFormData.affiliateUrl}
                   onChange={(e) => setOfferFormData({ ...offerFormData, affiliateUrl: e.target.value })}
                   placeholder="https://www.myntra.com/... or https://www.amazon.in/..."
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 font-mono text-xs focus:bg-white focus:outline-none focus:border-black"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 font-mono text-xs text-neutral-900 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-neutral-700 uppercase mb-1">Short Description</label>
+                <label className="block text-[10px] font-bold text-neutral-700 dark:text-neutral-300 uppercase mb-1">Short Description</label>
                 <textarea
                   rows={2}
                   value={offerFormData.description}
                   onChange={(e) => setOfferFormData({ ...offerFormData, description: e.target.value })}
                   placeholder="Offer summary or terms"
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-xs focus:bg-white focus:outline-none focus:border-black resize-none"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-xs text-neutral-900 dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:outline-none focus:border-black dark:focus:border-white resize-none"
                 />
               </div>
 
@@ -1474,23 +1652,23 @@ export default function AdminDashboard({
                     type="checkbox"
                     checked={offerFormData.isActive}
                     onChange={(e) => setOfferFormData({ ...offerFormData, isActive: e.target.checked })}
-                    className="w-4 h-4 accent-black"
+                    className="w-4 h-4 accent-black dark:accent-white"
                   />
-                  <span className="font-bold text-neutral-900 text-xs">Campaign is Active</span>
+                  <span className="font-bold text-neutral-900 dark:text-white text-xs">Campaign is Active</span>
                 </label>
               </div>
 
-              <div className="pt-3 flex items-center justify-end space-x-2 border-t border-neutral-100">
+              <div className="pt-3 flex items-center justify-end space-x-2 border-t border-neutral-100 dark:border-neutral-800">
                 <button
                   type="button"
                   onClick={() => setShowOfferModal(false)}
-                  className="px-4 py-2 border border-neutral-300 text-neutral-700 font-bold uppercase text-xs cursor-pointer"
+                  className="px-4 py-2 border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 font-bold uppercase text-xs cursor-pointer transition-colors hover:text-black dark:hover:text-white hover:border-black dark:hover:border-white"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-neutral-950 hover:bg-neutral-800 text-white font-bold uppercase text-xs cursor-pointer"
+                  className="px-5 py-2 bg-neutral-950 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-950 font-bold uppercase text-xs cursor-pointer transition-colors"
                 >
                   Save Campaign
                 </button>
@@ -1509,10 +1687,13 @@ export default function AdminDashboard({
         setActiveTab={setActiveTab}
         products={products}
         offers={offers}
+        brandSections={brandSections}
         analytics={analytics}
         onOpenAddProduct={handleOpenAdd}
         onOpenAddOffer={handleOpenAddOffer}
         onExitAdmin={onExitAdmin}
+        theme={theme}
+        onToggleTheme={onToggleTheme}
       />
 
     </div>

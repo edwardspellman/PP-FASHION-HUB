@@ -9,9 +9,11 @@ import MobileDrawer from './components/MobileDrawer';
 import AffiliateLinkGeneratorModal from './components/AffiliateLinkGeneratorModal';
 import AdminDashboard from './components/AdminDashboard';
 import AdminAuthModal from './components/AdminAuthModal';
+import BrandSection from './components/BrandSection';
+import CreateBrandSectionModal from './components/CreateBrandSectionModal';
 import Footer from './components/Footer';
 import Toast from './components/Toast';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Sparkles, Plus } from 'lucide-react';
 
 const CATEGORIES = ['All', 'Women', 'Men', 'Footwear', 'Accessories', 'Beauty'];
 
@@ -23,6 +25,40 @@ export default function App() {
     return sessionStorage.getItem('tfh_crm_auth') === 'true';
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Theme (Dark Mode) State
+  const [theme, setTheme] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tfh_theme');
+      if (saved) return saved;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    } catch {
+      return 'light';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = 'dark';
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.style.colorScheme = 'light';
+      }
+      localStorage.setItem('tfh_theme', theme);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  // Custom Brand / Store Sections
+  const [brandSections, setBrandSections] = useState([]);
+  const [isCreateSectionModalOpen, setIsCreateSectionModalOpen] = useState(false);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,6 +128,53 @@ export default function App() {
     }
   };
 
+  // Fetch Brand Sections
+  const fetchBrandSections = async () => {
+    try {
+      const res = await fetch('/api/brand-sections');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setBrandSections(data.data);
+      }
+    } catch (err) {
+      console.warn('Failed to load brand sections from server');
+    }
+  };
+
+  const handleCreateBrandSection = (newSection) => {
+    setBrandSections((prev) => [newSection, ...prev.filter((s) => s.id !== newSection.id)]);
+    fetchBrandSections();
+  };
+
+  const handleDeleteBrandSection = async (id) => {
+    try {
+      await fetch(`/api/brand-sections/${id}`, { method: 'DELETE' });
+      setBrandSections((prev) => prev.filter((s) => s.id !== id));
+      showToast('Brand section removed');
+    } catch (err) {
+      setBrandSections((prev) => prev.filter((s) => s.id !== id));
+    }
+  };
+
+  const handleUpdateBrandSection = async (id, updates) => {
+    try {
+      const res = await fetch(`/api/brand-sections/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setBrandSections((prev) => prev.map((s) => (s.id === id ? data.data : s)));
+        showToast('Brand section updated');
+      }
+    } catch (err) {
+      setBrandSections((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, ...updates } : s))
+      );
+    }
+  };
+
   // Update Settings
   const handleUpdateSettings = async (newSettings) => {
     try {
@@ -135,6 +218,7 @@ export default function App() {
 
   useEffect(() => {
     fetchSettings();
+    fetchBrandSections();
   }, []);
 
   useEffect(() => {
@@ -220,7 +304,7 @@ export default function App() {
   const dealOfTheDayItems = products.filter((p) => p.isDealOfTheDay && p.inStock !== false);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans text-neutral-900">
+    <div className="min-h-screen bg-white dark:bg-neutral-950 flex flex-col font-sans text-neutral-900 dark:text-neutral-100 transition-colors duration-200">
       {/* Toast Notification */}
       <Toast message={toastMessage} onClose={() => setToastMessage('')} />
 
@@ -229,6 +313,14 @@ export default function App() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onSuccess={handleAdminAuthSuccess}
+        onShowToast={showToast}
+      />
+
+      {/* CREATE BRAND SECTION MODAL */}
+      <CreateBrandSectionModal
+        isOpen={isCreateSectionModalOpen}
+        onClose={() => setIsCreateSectionModalOpen(false)}
+        onSuccess={handleCreateBrandSection}
         onShowToast={showToast}
       />
 
@@ -243,6 +335,13 @@ export default function App() {
               onUpdateSettings={handleUpdateSettings}
               onShowToast={showToast}
               onExitAdmin={handleExitAdmin}
+              brandSections={brandSections}
+              onRefreshBrandSections={fetchBrandSections}
+              onCreateBrandSection={() => setIsCreateSectionModalOpen(true)}
+              onDeleteBrandSection={handleDeleteBrandSection}
+              onUpdateBrandSection={handleUpdateBrandSection}
+              theme={theme}
+              onToggleTheme={toggleTheme}
             />
           </main>
           <Footer
@@ -255,10 +354,12 @@ export default function App() {
             onOpenAdmin={handleOpenAdmin}
             isAdminAuthenticated={isAdminAuthenticated}
             currentView={currentView}
+            theme={theme}
+            onToggleTheme={toggleTheme}
           />
         </div>
       ) : (
-        /* VIEW: PUBLIC DEALS STOREFRONT (Completely clean of admin buttons) */
+        /* VIEW: PUBLIC DEALS STOREFRONT */
         <div className="flex-1 flex flex-col">
           {/* Main Navbar */}
           <Navbar
@@ -271,6 +372,8 @@ export default function App() {
             openLinkConverter={() => setIsLinkConverterOpen(true)}
             settings={settings}
             onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
+            theme={theme}
+            onToggleTheme={toggleTheme}
           />
 
           <main className="flex-1 w-full">
@@ -282,7 +385,7 @@ export default function App() {
 
             <div ref={dealsSectionRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-12">
               
-              {/* Filter Product Section - Placed right after Curated Fashion Deals & Affiliate Storefront */}
+              {/* Filter Product Section */}
               <FilterBar
                 categories={CATEGORIES}
                 selectedCategory={selectedCategory}
@@ -300,16 +403,16 @@ export default function App() {
               />
 
               {/* DEAL OF THE DAY HIGHLIGHT ROW (if available) */}
-              {dealOfTheDayItems.length > 0 && selectedCategory === 'All' && !searchQuery && (
+              {dealOfTheDayItems.length > 0 && selectedCategory === 'All' && selectedMarketplace === 'All' && !searchQuery && (
                 <section className="mb-12">
-                  <div className="flex items-center justify-between pb-3 mb-6 border-b border-neutral-200">
+                  <div className="flex items-center justify-between pb-3 mb-6 border-b border-neutral-200 dark:border-neutral-800">
                     <div className="flex items-center space-x-2">
                       <span className="w-2.5 h-2.5 bg-red-600 rounded-full" />
-                      <h2 className="text-lg sm:text-xl font-black uppercase tracking-tight text-neutral-950">
+                      <h2 className="text-lg sm:text-xl font-black uppercase tracking-tight text-neutral-950 dark:text-white">
                         Deals of the Day • Handpicked Drops
                       </h2>
                     </div>
-                    <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-widest hidden sm:inline">
+                    <span className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest hidden sm:inline">
                       Direct Store Checkout
                     </span>
                   </div>
@@ -330,15 +433,61 @@ export default function App() {
                 </section>
               )}
 
+              {/* CUSTOM BRAND SECTIONS (User / Admin created showcase sections) */}
+              {selectedCategory === 'All' && selectedMarketplace === 'All' && !searchQuery && (
+                <div className="space-y-6">
+                  {/* Create Brand Section Prompt Banner */}
+                  <div className="mb-10 p-4 sm:p-5 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-center space-x-3 text-center sm:text-left">
+                      <div className="w-9 h-9 bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 flex items-center justify-center shrink-0">
+                        <Sparkles className="w-4 h-4 text-red-500" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-neutral-950 dark:text-white">
+                          Curate Custom Brand & Store Sections
+                        </h4>
+                        <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                          Create dedicated showcase sections for Meesho, favorite fashion brands, or curated marketplace collections.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setIsCreateSectionModalOpen(true)}
+                      className="px-4 py-2 bg-neutral-950 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-neutral-950 text-xs font-bold uppercase tracking-wider transition-colors inline-flex items-center space-x-1.5 cursor-pointer shrink-0"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Create Brand Section</span>
+                    </button>
+                  </div>
+
+                  {/* Render active custom brand sections */}
+                  {brandSections.map((sec) => (
+                    <BrandSection
+                      key={sec.id}
+                      section={sec}
+                      products={products}
+                      wishlist={wishlist}
+                      onToggleWishlist={handleToggleWishlist}
+                      onQuickView={setQuickViewProduct}
+                      onAffiliateClick={handleAffiliateClick}
+                      onShowToast={showToast}
+                      onCreateNewSection={() => setIsCreateSectionModalOpen(true)}
+                      onDeleteSection={handleDeleteBrandSection}
+                      isAdmin={isAdminAuthenticated}
+                    />
+                  ))}
+                </div>
+              )}
+
               {/* SECTION HEADER & ALL DEALS */}
-              <div className="flex items-center justify-between pb-3 mb-4 border-b border-neutral-200">
+              <div className="flex items-center justify-between pb-3 mb-4 border-b border-neutral-200 dark:border-neutral-800">
                 <div className="flex items-center space-x-2">
-                  <span className="w-2.5 h-2.5 bg-neutral-950 rounded-full" />
-                  <h2 className="text-lg sm:text-xl font-black uppercase tracking-tight text-neutral-950">
+                  <span className="w-2.5 h-2.5 bg-neutral-950 dark:bg-white rounded-full" />
+                  <h2 className="text-lg sm:text-xl font-black uppercase tracking-tight text-neutral-950 dark:text-white">
                     {selectedMarketplace !== 'All' ? `${selectedMarketplace} Deals` : 'Curated Fashion Catalog'}
                   </h2>
                 </div>
-                <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-widest hidden sm:inline">
+                <span className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest hidden sm:inline">
                   Verified Prices & Direct Affiliate Links
                 </span>
               </div>
@@ -346,20 +495,20 @@ export default function App() {
               {/* PRODUCT GRID */}
               {loading ? (
                 <div className="text-center py-24 space-y-3">
-                  <RefreshCw className="w-6 h-6 text-neutral-950 animate-spin mx-auto" />
-                  <p className="text-xs uppercase tracking-wider font-bold text-neutral-500">
+                  <RefreshCw className="w-6 h-6 text-neutral-950 dark:text-white animate-spin mx-auto" />
+                  <p className="text-xs uppercase tracking-wider font-bold text-neutral-500 dark:text-neutral-400">
                     Loading verified deals...
                   </p>
                 </div>
               ) : products.length === 0 ? (
-                <div className="text-center py-20 border border-neutral-200 p-8 space-y-3">
-                  <h3 className="text-base font-bold uppercase text-neutral-900">No Matching Deals</h3>
-                  <p className="text-xs text-neutral-500 max-w-sm mx-auto">
+                <div className="text-center py-20 border border-neutral-200 dark:border-neutral-800 p-8 space-y-3">
+                  <h3 className="text-base font-bold uppercase text-neutral-900 dark:text-white">No Matching Deals</h3>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto">
                     Try clearing your search keyword or adjusting your filters to view more items.
                   </p>
                   <button
                     onClick={handleResetFilters}
-                    className="px-5 py-2.5 bg-neutral-950 text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 cursor-pointer transition-colors"
+                    className="px-5 py-2.5 bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 dark:hover:bg-neutral-200 cursor-pointer transition-colors"
                   >
                     Reset All Filters
                   </button>
@@ -383,7 +532,7 @@ export default function App() {
             </div>
           </main>
 
-          {/* FOOTER (With Discreet Merchant CRM Access) */}
+          {/* FOOTER */}
           <Footer
             settings={settings}
             onCategorySelect={(cat) => {
@@ -393,6 +542,8 @@ export default function App() {
             onOpenAdmin={handleOpenAdmin}
             isAdminAuthenticated={isAdminAuthenticated}
             currentView={currentView}
+            theme={theme}
+            onToggleTheme={toggleTheme}
           />
         </div>
       )}
@@ -432,6 +583,8 @@ export default function App() {
         settings={settings}
         onOpenAdmin={handleOpenAdmin}
         onScrollToDeals={scrollToDeals}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {/* AFFILIATE LINK GENERATOR MODAL */}
